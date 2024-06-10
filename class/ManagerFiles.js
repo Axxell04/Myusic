@@ -10,8 +10,7 @@ export function ManagerFiles() {
 
     // const fileToAddd = {
     //     id: 1,
-    //     dir: "badbunny",
-    //     name: "un coco.mp3"
+    //     localURI: sfsdf/sdfsdf/sdfsdf
     // }
 
     const initManager = async () => {
@@ -25,15 +24,29 @@ export function ManagerFiles() {
         initManager();
     }, [])
 
-    const download = async (remoteURI, localURI, dirName) => {
+    const check = async (localURI) => {
+        const infoFile = await FileSystem.getInfoAsync(localURI);
+
+        if (infoFile.exists) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    const download = async (remoteURI, localURI) => {
+        const dirName = localURI.split("/").reverse()[1]
         const infoDir = await FileSystem.getInfoAsync(FileSystem.documentDirectory + "musics/" + dirName)
 
         if (!infoDir.exists) {
             await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + "musics/" + dirName)
         }
 
-        const response = await FileSystem.downloadAsync(remoteURI, localURI);
-        console.log("Descargado");
+        if (await check(localURI) === false) {
+            const response = await FileSystem.downloadAsync(remoteURI, localURI);
+            console.log("Descargado");
+        }
+
     };
 
     const remove = async (localURI) => {
@@ -41,13 +54,13 @@ export function ManagerFiles() {
         console.log("Eliminado");
     };
 
+
     //Método para añadir un nuevo archivo
     useEffect(() => {
         if (fileToAdd) {
             const remoteURI = `http://${ipServer}:8000/download/${fileToAdd.id}`;
-            const localURI = `${FileSystem.documentDirectory}musics/${fileToAdd.dir}/${fileToAdd.name}`;
 
-            download(remoteURI, localURI, fileToAdd.dir);
+            download(remoteURI, fileToAdd.localURI);
         };
     }, [fileToAdd]);
 

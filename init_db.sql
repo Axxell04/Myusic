@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS pls (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(30) NOT NULL
+    );
+
+CREATE TABLE IF NOT EXISTS music (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(40) NOT NULL,
+    author VARCHAR(40) NOT NULL,
+    duration VARCHAR(6) NOT NULL,
+    uri TEXT NOT NULL
+    );
+
+CREATE TABLE IF NOT EXISTS pls_music (
+    id_pls INTEGER NOT NULL,
+    id_music INTEGER NOT NULL,
+    PRIMARY KEY (id_pls, id_music),
+    FOREIGN KEY (id_pls) REFERENCES pls(id),
+    FOREIGN KEY (id_music) REFERENCES music(id)
+    );

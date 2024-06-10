@@ -1,14 +1,23 @@
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { mainTheme } from "./Palete";
 import Icon from "react-native-vector-icons/AntDesign";
-import { useContext, useEffect, useState } from "react";
+import { act, useContext, useEffect, useState } from "react";
 import { PlayerContext } from "../providers/ProviderProcesses";
 import { IpServerContext } from "../providers/ProviderConnection";
 import TrackPlayer from "react-native-track-player";
 import { ListMusicsContext, ListTrackContext, TrackSelectedContext } from "../providers/ProviderLists";
 import { IdListTrackContext, PlsSelectedContext } from "../providers/ProviderSelections";
+import { ListChangesContext } from "../providers/ProviderChanges";
+import { MusicChangeModel, MusicModel } from "../models/MusicModel";
 
 export function MusicItem({ music }) {
+  //SYNC STATE
+  const [initSyncState, setInitSyncState] = useState(false);
+  const [actualSyncState, setActualSyncState] = useState(false);
+
+  //LIST MUSIC CHANGES
+  const {listChanges, setListChanges} = useContext(ListChangesContext);
+  
   const {plsSelected} = useContext(PlsSelectedContext);
   const {listMusics} = useContext(ListMusicsContext);
   const {setListTrack} = useContext(ListTrackContext);
@@ -21,17 +30,18 @@ export function MusicItem({ music }) {
     var h = arrayDuration[0];
     var m = arrayDuration[1];
     var s = arrayDuration[2];
-
+    
     if (h === "00") {
-        return `${m}:${s}`
+      return `${m}:${s}`
     } else {
-        return duration
-    }
+      return duration
+      }
+      
+      };
 
-  };
-
-  const getIndexOfMusic = async () => {
-    const index = (await TrackPlayer.getQueue()).findIndex((track) => {
+      
+      const getIndexOfMusic = async () => {
+        const index = (await TrackPlayer.getQueue()).findIndex((track) => {
       if (track.artist === music.author && track.title === music.name) {
         return true;
       }
@@ -44,14 +54,26 @@ export function MusicItem({ music }) {
     setListTrack(listMusics);
   }
 
+  //console.log(music)
   const playMusic = () => {
-    console.log(music)
     setTrackSelected(music);
     changeListTrack();
     setIdListTrack(plsSelected);
   }
 
   const [indexMusic, setIndexMusic] = useState(getIndexOfMusic())
+
+  const changeSyncState = () => {
+    if (initSyncState != !actualSyncState) {
+      const command = !actualSyncState ? "sync" : "desync"
+      setListChanges([...listChanges, new MusicChangeModel(new MusicModel(music.id, music.name, music.author, music.duration), command)])
+    } else {
+      setListChanges(listChanges.filter((musicChange) => {
+        return musicChange.music.id != music.id;
+      }))
+    }
+    setActualSyncState(!actualSyncState);
+  }
  
   return (
     <View style={styles.container}>
@@ -64,8 +86,8 @@ export function MusicItem({ music }) {
           <Text style={styles.duration}>{formatDuration(music.duration)}</Text>
         </View> 
       </TouchableOpacity>
-      <TouchableOpacity style={styles.section2}>
-      <Icon name="checkcircle" size={30} style={styles.icon} />
+      <TouchableOpacity style={styles.section2} onPress={() => changeSyncState()}>
+      <Icon name={actualSyncState ? "checkcircle" : "checkcircleo"} size={30} style={styles.icon} />
       </TouchableOpacity>
     </View>
   );

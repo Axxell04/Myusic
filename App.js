@@ -31,6 +31,9 @@ import { ModalConnect } from "./modals/ModalConnect";
 import { MusicPlayer } from "./class/MusicPlayer";
 import { SectionPlayer } from "./components/SectionPlayer";
 import { SectionConnection } from "./components/SectionConnection";
+import { ManagerModels } from "./class/ManagerModels";
+import { SectionChanges } from "./components/SectionChanges";
+import { ManagerChanges } from "./class/ManagerChanges";
 
 export default function App() {
   
@@ -43,7 +46,10 @@ export default function App() {
           <SectionHomePlaylist />
           <SectionHomeMusics />
           <SectionPlayer />
+          <SectionChanges />
         </View>
+        <ManagerModels />
+        <ManagerChanges />
         <MusicPlayer />
         <ModalConnect />
         <ModalAddMusic />
@@ -82,10 +88,5 @@ const styles = StyleSheet.create({
     margin: 12,
     borderWidth: 1,
     padding: 10,
-  },
-  list: {
-    // maxHeightheight: 10,
-    overflow: "scroll",
-    backgroundColor: "green",
   },
 });

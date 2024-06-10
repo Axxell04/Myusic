@@ -10,11 +10,19 @@ import { mainTheme } from "./Palete";
 import { useContext, useEffect, useRef } from "react";
 import { MusicItem } from "./MusicItem";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { ListMusicsContext } from "../providers/ProviderLists";
+import { ListLocalMusicsContext, ListMusicsContext } from "../providers/ProviderLists";
 import { PlsSelectedContext } from "../providers/ProviderSelections";
 import { ModalAddMusicContext, ModalAddMusicToPlsContext, ModalRemoveMusicToPlsContext } from "../providers/ProviderModals";
+import { WsConnectContext } from "../providers/ProviderConnection";
 
 export function SectionHomeMusics() {
+  //WS CONNECTED
+  const wsConnected = useContext(WsConnectContext);
+
+  //LIST LOCAL
+  const {listLocalMusics} = useContext(ListLocalMusicsContext);
+
+  //LIST REMOTE
   const { listMusics } = useContext(ListMusicsContext);
   const { plsSelected } = useContext(PlsSelectedContext);
   const { setModalAddMusicIsVisible } = useContext(ModalAddMusicContext);
@@ -65,7 +73,7 @@ export function SectionHomeMusics() {
         ref={musicFlatListRef}
         style={styles.list}
         scroll
-        data={listMusics}
+        data={wsConnected ? listMusics : listLocalMusics}
         renderItem={({ item }) => <MusicItem music={item} />}
       />
     </View>

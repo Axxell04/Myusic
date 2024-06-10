@@ -2,16 +2,19 @@ import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { mainTheme } from "./Palete";
 import { useContext } from "react";
 import { PlsSelectedContext } from "../providers/ProviderSelections";
+import { PlsTargetChangesContext } from "../providers/ProviderChanges";
 
 
 export function PlaylistItem({ playlist }) {
   const { plsSelected, setPlsSelected } = useContext(PlsSelectedContext);
+  const {plsTargetChanges, setPlsTargetChanges} = useContext(PlsTargetChangesContext);
   let isSelected = false;
   if (playlist.id === plsSelected) {
     isSelected = true;
   }
   const selectedThisPlaylist = () => {
     setPlsSelected(playlist.id)
+    setPlsTargetChanges(playlist)
   }
   const styles = StyleSheet.create({
     container: {

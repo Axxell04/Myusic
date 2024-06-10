@@ -111,12 +111,12 @@ export function SectionPlayer() {
   const onLayout = (event) => {
     const { width } = event.nativeEvent.layout;
     setWidthProgressBar(width);
-    console.log(width);
+    // console.log(width);
   };
 
   const playMusic = async () => {
     const pbState = await TrackPlayer.getPlaybackState();
-    console.log(pbState)
+    // console.log(pbState)
     if ((pbState.state === State.Paused) || (pbState.state === State.Ready)) {
       await TrackPlayer.play();
     }

@@ -6,17 +6,36 @@ export const ListMusicsContext = createContext(null);
 export const ListPlsContext = createContext(null);
 export const ListTrackContext = createContext(null);
 
+export const ListLocalPlsContext = createContext(null);
+export const ListLocalMusicsContext = createContext(null);
+
+export const UpdateListLocalPlsContext = createContext(null);
+export const UpdateListLocalMusicsContext = createContext(null);
+
 export const TrackSelectedContext = createContext(null);
 
 export function ProviderLists({ children }) {
   const managerWS = useContext(ManagerWSContext);
-  // const { plsSelected } = useContext(PlsSelectedContext);
-  const {idListTrack} = useContext(IdListTrackContext);
+  const { idListTrack } = useContext(IdListTrackContext);
+
+  //FUNCTIONS UPDATE
+  const [updateListLocalPls, setUpdateListLocalPls] = useState(false);
+  const [updateListLocalMusics, setUpdateListLocalMusics] = useState(false);
+
+  //LISTS LOCAL
+  const [listLocalPls, setListLocalPls] = useState([]);
+  const [listLocalMusics, setListLocalMusics] = useState([]);
+
+  //LISTS REMOTE
   const [listMusics, setListMusics] = useState([]);
   const [listPls, setListPls] = useState([
     { id: 0, name: "Todas las canciones" },
   ]);
+
+  //TRACKED LIST
   const [listTrack, setListTrack] = useState([]);
+  
+  //TRACK SELECTED
   const [trackSelected, setTrackSelected] = useState(null);
 
   managerWS.setSetterListMusics(setListMusics);
@@ -26,12 +45,11 @@ export function ProviderLists({ children }) {
   useEffect(() => {
     if (listMusics) {
       managerWS.updateListMusics(listMusics);
-      //Cuando se eliminan canciones, y hay una playlist reproduciendo, verificar que esa playlist no contenga canciones que han sido eliminadas
     }
   }, [listMusics]);
   useEffect(() => {
     managerWS.updateIdListTrack(idListTrack);
-  }, [idListTrack])
+  }, [idListTrack]);
   useEffect(() => {
     if (listPls) {
       managerWS.updateListPls(listPls);
@@ -39,16 +57,22 @@ export function ProviderLists({ children }) {
   }, [listPls]);
 
   return (
-    <ListMusicsContext.Provider value={{ listMusics, setListMusics }}>
-      <ListPlsContext.Provider value={{ listPls, setListPls }}>
-        <ListTrackContext.Provider value={{ listTrack, setListTrack }}>
-          <TrackSelectedContext.Provider
-            value={{ trackSelected, setTrackSelected }}
-          >
-            {children}
-          </TrackSelectedContext.Provider>
-        </ListTrackContext.Provider>
-      </ListPlsContext.Provider>
-    </ListMusicsContext.Provider>
+    <ListLocalPlsContext.Provider value={{ listLocalPls, setListLocalPls }}>
+      <ListLocalMusicsContext.Provider
+        value={{ listLocalMusics, setListLocalMusics }}
+      >
+        <ListMusicsContext.Provider value={{ listMusics, setListMusics }}>
+          <ListPlsContext.Provider value={{ listPls, setListPls }}>
+            <ListTrackContext.Provider value={{ listTrack, setListTrack }}>
+              <TrackSelectedContext.Provider
+                value={{ trackSelected, setTrackSelected }}
+              >
+                {children}
+              </TrackSelectedContext.Provider>
+            </ListTrackContext.Provider>
+          </ListPlsContext.Provider>
+        </ListMusicsContext.Provider>
+      </ListLocalMusicsContext.Provider>
+    </ListLocalPlsContext.Provider>
   );
 }

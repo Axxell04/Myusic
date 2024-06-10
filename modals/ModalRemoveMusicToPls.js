@@ -94,10 +94,10 @@ export function ModalRemoveMusicToPls() {
   }, [trackSelected, listMusics]);
   
   useEffect(() => {
-    if (trackSelected) {
-      console.log(trackSelected.name)
-    }
-    console.log(validListMusics);
+    // if (trackSelected) {
+    //   console.log(trackSelected.name)
+    // }
+    // console.log(validListMusics);
   }, [validListMusics])
 
   const removeMusic = () => {

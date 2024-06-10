@@ -51,7 +51,6 @@ export function MusicPlayer() {
         ],
       });
       setPlayerInit(true);
-      console.log(playerInit)
     } catch (error) {
       if (error.message === "The player has already been initialized via setupPlayer.") {
         setPlayerInit(true);
@@ -60,7 +59,6 @@ export function MusicPlayer() {
   };
   const getIndexOfMusic = async () => {
     // Obtiene el ínidice del track equivalente al objeto music que se encuetra seleccionado actualmente "trackSelected"
-    console.log(playerInit)
     if (!playerInit) {
       return null;
     }
@@ -96,7 +94,6 @@ export function MusicPlayer() {
   };
   const changeTrackPlaying = async () => {
     if (!playerInit) {
-      console.log(1)
       return null;
     }
     if (!trackSelectedPlaying) {
@@ -113,7 +110,6 @@ export function MusicPlayer() {
     setActiveMusicTitle(activeTrack.title);
   };
   useTrackPlayerEvents([Event.PlaybackState], async (event) => {
-    console.log(event);
     if (event.state === State.Playing) {
       setPlayingMusic(true);
     } else if (event.state === State.Paused) {
@@ -125,15 +121,12 @@ export function MusicPlayer() {
       //   await TrackPlayer.play();
       // }
     } else if (event.state === State.Ended) {
-      console.log("List Track ended");
       setPlayingMusic(false);
       await TrackPlayer.pause();
       await TrackPlayer.seekTo(0);
     }
   });
   useTrackPlayerEvents([Event.PlaybackActiveTrackChanged], async (event) => {
-    console.log("Music Changed");
-    console.log(event);
     //Si el índice de la canción que comenzó a reproducirse es la siguiente a la última que se indicó que se encontraba reproduciendo actualizar este estado asignando un nuevo objeto music a trackSeleccted
     if (event.index === (await getIndexOfMusic()) + 1) {
       setTrackSelectedPlaying(true);

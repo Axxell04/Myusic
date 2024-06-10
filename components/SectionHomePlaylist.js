@@ -9,11 +9,19 @@ import { mainTheme } from "./Palete";
 import { useContext, useEffect, useRef } from "react";
 import { PlaylistItem } from "./PlaylistItem";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { ListPlsContext } from "../providers/ProviderLists";
+import { ListLocalPlsContext, ListPlsContext } from "../providers/ProviderLists";
 import { PlsSelectedContext } from "../providers/ProviderSelections";
 import { ModalCreatePlsContext, ModalRemovePlsContext } from "../providers/ProviderModals";
+import { WsConnectContext } from "../providers/ProviderConnection";
 
 export function SectionHomePlaylist() {
+  //WS CONNECTED
+  const wsConnected = useContext(WsConnectContext);
+
+  //LIST LOCAL
+  const {listLocalPls} = useContext(ListLocalPlsContext);
+
+  //LIST REMOTE
   const { listPls } = useContext(ListPlsContext);
   const { setPlsSelected } = useContext(PlsSelectedContext);
   const {setModalCreatePlsIsVisible} = useContext(ModalCreatePlsContext);
@@ -49,7 +57,7 @@ export function SectionHomePlaylist() {
       <FlatList
         ref={playlistFlatListRef}
         style={styles.list}
-        data={listPls}
+        data={wsConnected ? listPls : listLocalPls}
         renderItem={({ item }) => <PlaylistItem playlist={item} />}
       />
     </View>

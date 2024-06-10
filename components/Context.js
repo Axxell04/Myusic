@@ -6,6 +6,7 @@ import { ProviderLists } from "../providers/ProviderLists";
 import { ProviderSelections } from "../providers/ProviderSelections";
 import { ProviderChanges } from "../providers/ProviderChanges";
 import { ProviderFiles } from "../providers/ProviderFiles";
+import { ProviderModels } from "../providers/ProviderModels";
 
 export function Providers({ children }) {
   return (
@@ -16,9 +17,11 @@ export function Providers({ children }) {
             <ProviderSelections>
               <ProviderLists>
                 <ProviderFiles>
-                  <ProviderChanges>
-                    {children}
-                  </ProviderChanges>
+                  <ProviderModels>
+                    <ProviderChanges>
+                      {children}
+                    </ProviderChanges>
+                  </ProviderModels>
                 </ProviderFiles>
               </ProviderLists>
             </ProviderSelections>

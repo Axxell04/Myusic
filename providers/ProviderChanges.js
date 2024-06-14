@@ -5,6 +5,7 @@ export const SectionChangesContext = createContext(null);
 export const ListChangesContext = createContext(null);
 export const TotalChangesContext = createContext(null);
 export const DoneChangesContext = createContext(null);
+export const UpdateDoneChangesContext = createContext(null);
 export const PlsTargetChangesContext = createContext(null);
 export const ConfirmChangesContext = createContext(null);
 export const CounterChangesOfSyncContext = createContext(null);
@@ -16,6 +17,7 @@ export function ProviderChanges({ children }) {
   const [listChanges, setListChanges] = useState([]);
   const [totalChanges, setTotalChanges] = useState(0);
   const [doneChanges, setDoneChanges] = useState(0);
+  const [updateDoneChanges, setUpdateDoneChanges] = useState(false);
   const [confirmChanges, setConfirmChanges] = useState(false);
 
   //COUNTERS
@@ -23,7 +25,18 @@ export function ProviderChanges({ children }) {
   const [counterChangesOfDesync, setCounterChangesOfDesync] = useState(0);
 
   //PROCESS CHANGES
-  const {changesInProcess, setChangesInProcess} = useContext(ChangesInProcessContext);
+  const { changesInProcess, setChangesInProcess } = useContext(
+    ChangesInProcessContext
+  );
+
+  useEffect(() => {
+    if (updateDoneChanges) {
+      console.log(updateDoneChanges);
+      console.log("Done Changes: "+doneChanges)
+      setDoneChanges(doneChanges + 1);
+      setUpdateDoneChanges(false);
+    }
+  }, [updateDoneChanges]);
 
   useEffect(() => {
     let counterSync = 0;
@@ -34,7 +47,7 @@ export function ProviderChanges({ children }) {
       } else if (musicChange.command === "desync") {
         counterDesync++;
       }
-    })
+    });
     //console.log("CounterSync: "+counterSync);
     //console.log("CounterDesync: "+counterDesync);
     if (!changesInProcess) {
@@ -61,15 +74,19 @@ export function ProviderChanges({ children }) {
               <TotalChangesContext.Provider
                 value={{ totalChanges, setTotalChanges }}
               >
-                <DoneChangesContext.Provider
-                  value={{ doneChanges, setDoneChanges }}
+                <UpdateDoneChangesContext.Provider
+                  value={{ updateDoneChanges, setUpdateDoneChanges }}
                 >
-                  <ConfirmChangesContext.Provider
-                    value={{ confirmChanges, setConfirmChanges }}
+                  <DoneChangesContext.Provider
+                    value={{ doneChanges, setDoneChanges }}
                   >
-                    {children}
-                  </ConfirmChangesContext.Provider>
-                </DoneChangesContext.Provider>
+                    <ConfirmChangesContext.Provider
+                      value={{ confirmChanges, setConfirmChanges }}
+                    >
+                      {children}
+                    </ConfirmChangesContext.Provider>
+                  </DoneChangesContext.Provider>
+                </UpdateDoneChangesContext.Provider>
               </TotalChangesContext.Provider>
             </ListChangesContext.Provider>
           </CounterChangesOfDesyncContext.Provider>

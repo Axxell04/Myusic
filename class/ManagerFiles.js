@@ -9,7 +9,7 @@ import {
   ListFilesToRemoveContext,
 } from "../providers/ProviderFiles";
 import { IpServerContext } from "../providers/ProviderConnection";
-import { CounterChangesOfDesyncContext, CounterChangesOfSyncContext, DoneChangesContext } from "../providers/ProviderChanges";
+import { CounterChangesOfDesyncContext, CounterChangesOfSyncContext, DoneChangesContext, UpdateDoneChangesContext } from "../providers/ProviderChanges";
 import { RequestStateContext } from "../providers/ProviderModels";
 
 export function ManagerFiles() {
@@ -21,15 +21,13 @@ export function ManagerFiles() {
   const {listFilesToRemove, setListFilesToRemove} = useContext(ListFilesToRemoveContext);
 
   const { doneChanges, setDoneChanges } = useContext(DoneChangesContext);
+  const {updateDoneChanges, setUpdateDoneChanges} = useContext(UpdateDoneChangesContext);
 
   const {initProcessAdd, setInitProcessAdd} = useContext(InitProcessAddContext);
   const {initProcessRemove, setInitProcessRemove} = useContext(InitProcessRemoveContext);
 
   const {counterChangesOfSync, setCounterChangesOfSync} = useContext(CounterChangesOfSyncContext);
   const {counterChangesOfDesync, setCounterChangesOfDesync} = useContext(CounterChangesOfDesyncContext);
-
-  const [maxLengthListToAdd, setMaxLengthListToAdd] = useState(0);
-  const [maxLengthListToRemove, setMaxLengthListToRemove] = useState(0);
 
   const initManager = async () => {
     const infoDir = await FileSystem.getInfoAsync(
@@ -57,6 +55,14 @@ export function ManagerFiles() {
   };
 
   const download = async (remoteURI, localURI) => {
+    if (!localURI) {
+      function a() {console.log("A")}
+      await new Promise((a) => {setTimeout(() => {
+        a();
+      }, 1000)})
+      return
+    }
+
     console.log("Archivo a descargar: "+localURI);
     const infoMusicsDir = await FileSystem.getInfoAsync(
       FileSystem.documentDirectory + "musics/"
@@ -82,92 +88,72 @@ export function ManagerFiles() {
       const response = await FileSystem.downloadAsync(remoteURI, localURI);
       console.log("Descargado");
     }
-    console.log("Done changes: " + doneChanges);
-    setDoneChanges(doneChanges + 1);
-    setFileToAdd(null);
-    setListFilesToAdd(listFilesToAdd.filter((fta) => {
-      return fta.localURI != localURI;
-    }))
+  
   };
 
   const remove = async (localURI) => {
+    if (!localURI) {
+      function a() {console.log("A")}
+      await new Promise((a) => {setTimeout(() => {
+        a();
+      }, 1000)})
+      console.log("Eliminando: "+localURI)
+      return
+    }
+
     const infoDir = await FileSystem.getInfoAsync(localURI);
     if (infoDir.exists) {
       await FileSystem.deleteAsync(localURI);
       console.log("Eliminando: " + localURI);
     }
-    console.log("Done changes: " + doneChanges);
-    setDoneChanges(doneChanges + 1);
-    setFileToRemove(null);
-    setListFilesToRemove(listFilesToRemove.filter((ftr) => {
-      return ftr.localURI != localURI;
-    }));
   };
 
-  //Detectando si estamos listos para activar el manejo de archivos a añadir
-  useEffect(() => {
-    if (counterChangesOfSync>0 && counterChangesOfSync === listFilesToAdd.length) {
-      setInitProcessAdd(true);
+  const processListAdd = async () => {
+    console.log(listFilesToAdd)
+    for (const fta of listFilesToAdd) {
+      //console.log(fta)
+      const remoteURI = `http://${ipServer}:8000/download/${fta.id}`;
+      await download(remoteURI, fta.localURI);
+      setUpdateDoneChanges(listFilesToAdd.indexOf(fta)+1);
     }
-  }, [listFilesToAdd])
+    setListFilesToAdd([]);
+  }
 
-  //Detectando si estamos listos para activar el manejo de archivos a remover
-  useEffect(() => {
-    if (counterChangesOfDesync>0 && counterChangesOfDesync === listFilesToRemove.length) {
-      setInitProcessRemove(true);
+  const processListRemove = async () => {
+    console.log(listFilesToRemove)
+    for (const ftr of listFilesToRemove) {
+      //console.log(ftr)
+      await remove(ftr.localURI)
+      setUpdateDoneChanges(listFilesToRemove.indexOf(ftr)+1);
     }
-  }, [listFilesToRemove])
+    setListFilesToRemove([]);
+  }
 
-  //Manejando la lista de archivos por añadir
+  //Detectanto si se puede iniciar con el procesamiento de la lista de archivos por añadir
   useEffect(() => {
     //##AL PARECER CUANDO LISTFILESTOADD.LENGTH CAMBIA A 1 ESTA YA DETECTA QUE INITPROCESSADD YA ES TRUE
-    console.log("ListFilesToAddLength: "+listFilesToAdd.length);
-    console.log("CounterChangesOfSync: "+counterChangesOfSync);
-    console.log("MaxLength: "+maxLengthListToAdd);
-    console.log("FileToAdd: "+fileToAdd);
+    // console.log("ListFilesToAddLength: "+listFilesToAdd.length);
+    // console.log("CounterChangesOfSync: "+counterChangesOfSync);
+    // console.log("MaxLength: "+maxLengthListToAdd);
     if (listFilesToAdd.length > 0) {
-      let newLength = listFilesToAdd.length;
-      if (newLength > maxLengthListToAdd) {setMaxLengthListToAdd(newLength)}
-      if (!fileToAdd && (newLength === counterChangesOfSync || maxLengthListToAdd === counterChangesOfSync)) {
-        let fta = listFilesToAdd[0];
-        setFileToAdd(fta)
+      if (listFilesToAdd.length === counterChangesOfSync) {
+        processListAdd();
       }
     } else if (listFilesToAdd.length === 0) {
-      // setMaxLengthListToAdd(0);
-      // setCounterChangesOfSync(0);
+      //setCounterChangesOfSync(0);
     }
   }, [listFilesToAdd])
 
-  //Manejando la lista de archivos por remover
+  //Detectando si se puede iniciar con el procesamiento de la lista de archivos por remover
   useEffect(() => {
     if (listFilesToRemove.length > 0) {
-      let newLength = listFilesToRemove.length;
-      if (newLength > maxLengthListToRemove) {setMaxLengthListToRemove(newLength)}
-      if (!fileToRemove && (newLength === counterChangesOfDesync || maxLengthListToRemove === counterChangesOfDesync)) {
-        let ftr = listFilesToRemove[0];
-        setFileToRemove(ftr);
+      if (listFilesToRemove.length === counterChangesOfDesync) {
+        processListRemove();
       }
     } else if (listFilesToRemove.length === 0) {
-      setMaxLengthListToRemove(0);
-      setCounterChangesOfDesync(0);
+      //setCounterChangesOfDesync(0);
     }
   }, [listFilesToRemove])
-
-  //Método para añadir un nuevo archivo
-  useEffect(() => {
-    if (fileToAdd) {
-      const remoteURI = `http://${ipServer}:8000/download/${fileToAdd.id}`;
-
-      download(remoteURI, fileToAdd.localURI);
-    }
-  }, [fileToAdd]);
-
-  //Método para remover un archive
-  useEffect(() => {
-    if (fileToRemove) {
-      remove(fileToRemove.localURI);
-    }
-  }, [fileToRemove]);
 
   return <></>;
 }

@@ -68,14 +68,16 @@ export function ManagerModels() {
     );
     if (!resMusic) {
       const localURI = `${FileSystem.documentDirectory}musics/${pls.name}/${music.name}.mp3`;
-      //setFileToAdd({ id: music.id, localURI: localURI });
-      setListFilesToAdd([...listFilesToAdd, {id: music.id, localURI: localURI}])
-      console.log("Mandando a agreagar: "+localURI)
+      setFileToAdd({id: music.id, localURI: localURI})
+      console.log("Mandando a agregar: "+localURI)
       music.URI = localURI;
       await db.runAsync(
         "INSERT INTO music (id, name, author, duration, uri) VALUES (?,?,?,?,?)",
         [music.id, music.name, music.author, music.duration, music.URI]
       );
+    } else {
+      setFileToAdd({id: music.id, localURI: null})
+      console.log("Mandando a agregar: "+null)
     }
 
     await db.runAsync("INSERT INTO pls_music (id_pls, id_music) VALUES (?,?)", [
@@ -116,10 +118,14 @@ export function ManagerModels() {
     if (!resMusicSync) {
       await db.runAsync("DELETE FROM music WHERE id = ?", music.id);
       //setFileToRemove({localURI: music.URI});
-      setListFilesToRemove([...listFilesToRemove, {localURI: music.URI}]);
+      //setListFilesToRemove([...listFilesToRemove, {localURI: music.URI}]);
+      setFileToRemove({localURI: music.URI})
+      console.log("Mandando a eliminar: "+music.URI)
     } else {
-      setDoneChanges(doneChanges+1);
-      setRequestState(null);
+      setFileToRemove({localURI: null})
+      console.log("Mandando a eliminar: "+null)
+      //setDoneChanges(doneChanges+1);
+      //setRequestState(null);
     }
   };
 

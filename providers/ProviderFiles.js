@@ -15,6 +15,22 @@ export function ProviderFiles({ children }) {
   const [initProcessAdd, setInitProcessAdd] = useState(false);
   const [initProcessRemove, setInitProcessRemove] = useState(false);
 
+  //Actualiza la lista de archivos por añadir
+  useEffect(() => {
+    if (fileToAdd) {
+      setListFilesToAdd([...listFilesToAdd, fileToAdd])
+      setFileToAdd(null);
+    }
+  }, [fileToAdd])
+
+  //Actualiza la lista de archivos por remover
+  useEffect(() => {
+    if (fileToRemove) {
+      setListFilesToRemove([...listFilesToRemove, fileToRemove])
+      setFileToRemove(null);
+    }
+  }, [fileToRemove])
+
   return (
     <ListFilesToAddContext.Provider
       value={{ listFilesToAdd, setListFilesToAdd }}

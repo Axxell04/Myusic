@@ -14,17 +14,15 @@ export function Providers({ children }) {
       <ProviderConnection>
         <ProviderProcesses>
           <ProviderModals>
-            <ProviderSelections>
-              <ProviderLists>
+            <ProviderLists>
+              <ProviderSelections>
                 <ProviderFiles>
                   <ProviderModels>
-                    <ProviderChanges>
-                      {children}
-                    </ProviderChanges>
+                    <ProviderChanges>{children}</ProviderChanges>
                   </ProviderModels>
                 </ProviderFiles>
-              </ProviderLists>
-            </ProviderSelections>
+              </ProviderSelections>
+            </ProviderLists>
           </ProviderModals>
         </ProviderProcesses>
       </ProviderConnection>

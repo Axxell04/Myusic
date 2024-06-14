@@ -30,6 +30,14 @@ export function ModalConnect() {
     }
   }
 
+  function disconnect() {
+    if (wsConnected) {
+      managerWS.disconnect();
+    } else {
+      ToastAndroid.show("Sin conexión establecida", ToastAndroid.SHORT);
+    }
+  }
+
   const filterInput = (text = "") => {
     const forbiddenCharacters = [
       " ",
@@ -73,6 +81,10 @@ export function ModalConnect() {
       primaryButton={{
         title: "Conectar",
         onPress: enterNewIp,
+      }}
+      secondaryButton={{
+        title: "Desconectar",
+        onPress: disconnect,
       }}
     >
       <TextInput

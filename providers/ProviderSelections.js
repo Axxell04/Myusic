@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { ManagerWSContext, WsConnectContext } from "./ProviderConnection";
-import { UpdateListLocalMusicsContext } from "./ProviderLists";
+import { ListMusicsContext, UpdateListLocalMusicsContext } from "./ProviderLists";
 
 export const PlsSelectedContext = createContext(null);
 export const IdListTrackContext = createContext(null);
@@ -13,19 +13,28 @@ export function ProviderSelections({ children }) {
   const [activeMusicTitle, setActiveMusicTitle] = useState("");
   const [activeMusicAuthor, setActiveMusicAuthor] = useState("");
 
+  const {listMusics, setListMusics} = useContext(ListMusicsContext);
+
   const wsConnected = useContext(WsConnectContext);
   const managerWS = useContext(ManagerWSContext);
-  
-  const {setUpdateListLocalMusics} = useContext(UpdateListLocalMusicsContext);
+
+  const { setUpdateListLocalMusics } = useContext(UpdateListLocalMusicsContext);
+
+  useEffect(() => {
+    managerWS.updateIdListTrack(idListTrack);
+  }, [idListTrack]);
 
   useEffect(() => {
     if (wsConnected) {
+      setListMusics([]);
       if (plsSelected === 0) {
         managerWS.send("get_musics", { all: true });
       } else {
         managerWS.send("get_musics_of_playlist", { id: plsSelected });
         setUpdateListLocalMusics(true);
       }
+    } else {
+      setUpdateListLocalMusics(true);
     }
   }, [plsSelected]);
 

@@ -86,6 +86,16 @@ export default class WS {
     }
   }
 
+  disconnect() {
+    if (this.ws) {
+      this.ws.close();
+      this.setWsConnected(false);
+      this.setterModalConnectIsVisible(false);
+      this.setterListPls([]);
+      this.setterListMusics([]);
+    }
+  }
+
   received(data) {
     const command_received = data.command_received;
     const message = data.message;

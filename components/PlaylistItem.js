@@ -18,6 +18,7 @@ export function PlaylistItem({ playlist }) {
   }
   const styles = StyleSheet.create({
     container: {
+      height: 60,
       flexDirection: "row",
       marginVertical: 5,
       gap: 10,

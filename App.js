@@ -34,6 +34,8 @@ import { SectionConnection } from "./components/SectionConnection";
 import { ManagerModels } from "./class/ManagerModels";
 import { SectionChanges } from "./components/SectionChanges";
 import { ManagerChanges } from "./class/ManagerChanges";
+import { ManagerLists } from "./class/ManagerLists";
+import { ManagerFiles } from "./class/ManagerFiles";
 
 export default function App() {
   
@@ -48,6 +50,8 @@ export default function App() {
           <SectionPlayer />
           <SectionChanges />
         </View>
+        <ManagerFiles />
+        <ManagerLists />
         <ManagerModels />
         <ManagerChanges />
         <MusicPlayer />

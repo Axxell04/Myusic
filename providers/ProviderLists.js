@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { ManagerWSContext } from "./ProviderConnection";
-import { IdListTrackContext, PlsSelectedContext } from "./ProviderSelections";
+import { ManagerWSContext, WsConnectContext } from "./ProviderConnection";
+// import { IdListTrackContext, PlsSelectedContext } from "./ProviderSelections";
 
 export const ListMusicsContext = createContext(null);
 export const ListPlsContext = createContext(null);
@@ -16,7 +16,8 @@ export const TrackSelectedContext = createContext(null);
 
 export function ProviderLists({ children }) {
   const managerWS = useContext(ManagerWSContext);
-  const { idListTrack } = useContext(IdListTrackContext);
+  const wsConnected = useContext(WsConnectContext);
+  // const { idListTrack } = useContext(IdListTrackContext);
 
   //FUNCTIONS UPDATE
   const [updateListLocalPls, setUpdateListLocalPls] = useState(false);
@@ -28,13 +29,11 @@ export function ProviderLists({ children }) {
 
   //LISTS REMOTE
   const [listMusics, setListMusics] = useState([]);
-  const [listPls, setListPls] = useState([
-    { id: 0, name: "Todas las canciones" },
-  ]);
+  const [listPls, setListPls] = useState([]);
 
   //TRACKED LIST
   const [listTrack, setListTrack] = useState([]);
-  
+
   //TRACK SELECTED
   const [trackSelected, setTrackSelected] = useState(null);
 
@@ -48,8 +47,14 @@ export function ProviderLists({ children }) {
     }
   }, [listMusics]);
   useEffect(() => {
-    managerWS.updateIdListTrack(idListTrack);
-  }, [idListTrack]);
+    if (wsConnected) {
+      setListPls([{ id: 0, name: "Biblioteca" }]);
+    } else {
+      setUpdateListLocalPls(true);
+      setListLocalMusics([]);
+      
+    }
+  }, [wsConnected]);
   useEffect(() => {
     if (listPls) {
       managerWS.updateListPls(listPls);
@@ -57,22 +62,30 @@ export function ProviderLists({ children }) {
   }, [listPls]);
 
   return (
-    <ListLocalPlsContext.Provider value={{ listLocalPls, setListLocalPls }}>
-      <ListLocalMusicsContext.Provider
-        value={{ listLocalMusics, setListLocalMusics }}
+    <UpdateListLocalPlsContext.Provider
+      value={{ updateListLocalPls, setUpdateListLocalPls }}
+    >
+      <UpdateListLocalMusicsContext.Provider
+        value={{ updateListLocalMusics, setUpdateListLocalMusics }}
       >
-        <ListMusicsContext.Provider value={{ listMusics, setListMusics }}>
-          <ListPlsContext.Provider value={{ listPls, setListPls }}>
-            <ListTrackContext.Provider value={{ listTrack, setListTrack }}>
-              <TrackSelectedContext.Provider
-                value={{ trackSelected, setTrackSelected }}
-              >
-                {children}
-              </TrackSelectedContext.Provider>
-            </ListTrackContext.Provider>
-          </ListPlsContext.Provider>
-        </ListMusicsContext.Provider>
-      </ListLocalMusicsContext.Provider>
-    </ListLocalPlsContext.Provider>
+        <ListLocalPlsContext.Provider value={{ listLocalPls, setListLocalPls }}>
+          <ListLocalMusicsContext.Provider
+            value={{ listLocalMusics, setListLocalMusics }}
+          >
+            <ListMusicsContext.Provider value={{ listMusics, setListMusics }}>
+              <ListPlsContext.Provider value={{ listPls, setListPls }}>
+                <ListTrackContext.Provider value={{ listTrack, setListTrack }}>
+                  <TrackSelectedContext.Provider
+                    value={{ trackSelected, setTrackSelected }}
+                  >
+                    {children}
+                  </TrackSelectedContext.Provider>
+                </ListTrackContext.Provider>
+              </ListPlsContext.Provider>
+            </ListMusicsContext.Provider>
+          </ListLocalMusicsContext.Provider>
+        </ListLocalPlsContext.Provider>
+      </UpdateListLocalMusicsContext.Provider>
+    </UpdateListLocalPlsContext.Provider>
   );
 }

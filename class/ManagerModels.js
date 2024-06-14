@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import {
   ListLocalMusicsContext,
   ListLocalPlsContext,
+  ListMusicsContext,
 } from "../providers/ProviderLists";
 import { RequestStateContext } from "../providers/ProviderModels";
 
@@ -14,8 +15,11 @@ import { MusicModel } from "../models/MusicModel";
 import {
   FileToAddContext,
   FileToRemoveContext,
+  ListFilesToAddContext,
+  ListFilesToRemoveContext,
 } from "../providers/ProviderFiles";
 import { PlsSelectedContext } from "../providers/ProviderSelections";
+import { DoneChangesContext } from "../providers/ProviderChanges";
 
 export function ManagerModels() {
   const [db, setDB] = useState();
@@ -26,6 +30,8 @@ export function ManagerModels() {
   //MANAGER FILES
   const { fileToAdd, setFileToAdd } = useContext(FileToAddContext);
   const { fileToRemove, setFileToRemove } = useContext(FileToRemoveContext);
+  const {listFilesToAdd, setListFilesToAdd} = useContext(ListFilesToAddContext);
+  const {listFilesToRemove, setListFilesToRemove} = useContext(ListFilesToRemoveContext);
 
   //LIST LOCAL
   const { listLocalPls, setListLocalPls } = useContext(ListLocalPlsContext);
@@ -33,8 +39,13 @@ export function ManagerModels() {
     ListLocalMusicsContext
   );
 
+  const {listMusics, setListMusics} = useContext(ListMusicsContext);
+
   //PLS SELECTED
   const { plsSelected, setPlsSelected } = useContext(PlsSelectedContext);
+
+  //COUNTER CHANGES
+  const {doneChanges, setDoneChanges} = useContext(DoneChangesContext);
 
   //Método para sincronizar una canción a una pls
   const syncMusicToPls = async (
@@ -57,7 +68,9 @@ export function ManagerModels() {
     );
     if (!resMusic) {
       const localURI = `${FileSystem.documentDirectory}musics/${pls.name}/${music.name}.mp3`;
-      setFileToAdd({ id: music.id, localURI: localURI });
+      //setFileToAdd({ id: music.id, localURI: localURI });
+      setListFilesToAdd([...listFilesToAdd, {id: music.id, localURI: localURI}])
+      console.log("Mandando a agreagar: "+localURI)
       music.URI = localURI;
       await db.runAsync(
         "INSERT INTO music (id, name, author, duration, uri) VALUES (?,?,?,?,?)",
@@ -69,50 +82,82 @@ export function ManagerModels() {
       pls.id,
       music.id,
     ]);
-
-    console.log(
-      await db.getFirstAsync("SELECT * FROM pls WHERE id = ?", pls.id)
-    );
-    console.log(
-      await db.getFirstAsync("SELECT * FROM music WHERE id = ?", music.id)
-    );
-    console.log(
-      await db.getFirstAsync(
-        "SELECT * FROM pls_music WHERE id_pls = ? AND id_music",
-        [pls.id, music.id]
-      )
-    );
-
-    setRequestState(null);
+    getSyncMusicToPls();
+    //setRequestState(null);
+    //setDoneChanges(doneChanges+1);
   };
 
+  //ESPERA HASTA QUE SE VEA REFLEJADO EL CAMBIO EN LAS LISTAS DE ARCHIVOS PARA INDICAR QUE SE PUEDE REALIZAR OTRA PETICIÓN
+  useEffect(() => {
+    if (requestState) {
+      setRequestState(null);
+    }
+  }, [listFilesToAdd, listFilesToRemove])
+
   //Método para desincronizar una canción a una pls
-  const desyncMusicToPls = async (pls, music) => {};
+  const desyncMusicToPls = async (pls = new PlsModel(), music = new MusicModel()) => {
+    let resMusic = await db.getFirstAsync("SELECT * FROM music WHERE id = ?", music.id);
+    if (resMusic) {
+      await db.runAsync("DELETE FROM pls_music WHERE id_pls = ? AND id_music = ?", [pls.id, music.id]);
+      music.URI = resMusic.uri;
+      await checkSyncMusicExists(music);
+      await checkSyncPlsExists(pls);
+    }
+    getSyncMusicToPls();
+    //setRequestState(null);
+    //setDoneChanges(doneChanges+1);
+  };
 
   //Verifica si una canción sigue estando asociada a alguna pls existente
-  const checkSyncMusicExists = async (music) => {};
+  const checkSyncMusicExists = async (music = new MusicModel()) => {
+    //##SE ESTÁ BORRANDO LA MUSIC ANQUE SE ENCUENTRE REGISTRADA EN OTRA PLS
+    const resMusicSync = await db.getFirstAsync("SELECT * FROM pls_music WHERE id_music = ?", music.id);
+    //console.log(await db.getAllAsync("SELECT * FROM pls_music"));
+    if (!resMusicSync) {
+      await db.runAsync("DELETE FROM music WHERE id = ?", music.id);
+      //setFileToRemove({localURI: music.URI});
+      setListFilesToRemove([...listFilesToRemove, {localURI: music.URI}]);
+    } else {
+      setDoneChanges(doneChanges+1);
+      setRequestState(null);
+    }
+  };
 
   //Verifica si una pls sigue teniendo alguna canción asociada
-  const checkSyncPlsExists = async (pls) => {};
+  const checkSyncPlsExists = async (pls = new PlsModel()) => {
+    const resPlsSync = await db.getFirstAsync("SELECT * FROM pls_music WHERE id_pls = ?", pls.id);
+    if (!resPlsSync) {
+      await db.runAsync("DELETE FROM pls WHERE id = ?", pls.id);
+      // const localURI = FileSystem.documentDirectory+"musics/"+pls.name
+      // const infoDir = await FileSystem.getInfoAsync(localURI);
+      // if (infoDir.exists) {
+      //   //setFileToRemove({localURI: localURI});
+      //   setListFilesToRemove([...listFilesToRemove, {localURI: localURI}]);
+      // }
+    }
+  };
 
   //Actualiza el contexto de la lista de pls sincronizadas
   const getSyncPls = async () => {
     const resPls = await db.getAllAsync("SELECT * FROM pls");
-    console.log(resPls);
+    //console.log(resPls);
     setListLocalPls(resPls ? resPls : []);
     setRequestState(null);
   };
 
   //Actualiza el contexto de la lista de canciones sincronizadas a dicha pls
   const getSyncMusicToPls = async () => {
-    console.log(plsSelected)
+    //console.log(plsSelected)
     if (plsSelected) {
       const resMusic = await db.getAllAsync(
-        "SELECT * FROM music WHERE id = ?",
-        plsSelected
-      );
-      console.log(resMusic);
-      setListLocalMusics(resMusic ? resMusic : []);
+        "SELECT * FROM music JOIN pls_music ON music.id = pls_music.id_music WHERE pls_music.id_pls = ?", plsSelected);
+      
+      if (resMusic.length > 0) {
+        setListLocalMusics(resMusic);
+        //console.log("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"+resMusic.length)
+      } else {
+        setListLocalMusics([]);
+      }
     }
     setRequestState(null);
   };
@@ -152,7 +197,7 @@ export function ManagerModels() {
   };
 
   useEffect(() => {
-    console.log(db);
+    //console.log(db);
     if (!db) {
       getDB();
     } else {

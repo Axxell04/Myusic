@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react";
+import * as FileSystem from "expo-file-system";
 import TrackPlayer, {
   Capability,
   State,
@@ -11,13 +12,14 @@ import {
   ListTrackContext,
   TrackSelectedContext,
 } from "../providers/ProviderLists";
-import { IpServerContext } from "../providers/ProviderConnection";
+import { IpServerContext, WsConnectContext } from "../providers/ProviderConnection";
 import {
   ActiveMusicAuthorContext,
   ActiveMusicTitleContext,
 } from "../providers/ProviderSelections";
 
 export function MusicPlayer() {
+  const wsConnected = useContext(WsConnectContext);
   const { setPlayingMusic } = useContext(PlayingMusicContext);
 
   const { listTrack } = useContext(ListTrackContext);
@@ -79,8 +81,10 @@ export function MusicPlayer() {
     try {
       trackListMusics = [];
       listTrack.map((music) => {
+        const uri = wsConnected ? `http://${ipServer}:8000/download/${music.id}` : music.uri
+        console.log(uri)
         trackListMusics.push({
-          url: `http://${ipServer}:8000/download/${music.id}`,
+          url: uri,
           title: music.name,
           artist: music.author,
         });

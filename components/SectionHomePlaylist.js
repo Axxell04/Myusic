@@ -9,45 +9,155 @@ import { mainTheme } from "./Palete";
 import { useContext, useEffect, useRef } from "react";
 import { PlaylistItem } from "./PlaylistItem";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { ListLocalPlsContext, ListPlsContext } from "../providers/ProviderLists";
+import {
+  ListLocalPlsContext,
+  ListPlsContext,
+} from "../providers/ProviderLists";
 import { PlsSelectedContext } from "../providers/ProviderSelections";
-import { ModalCreatePlsContext, ModalRemovePlsContext } from "../providers/ProviderModals";
+import {
+  ModalCreatePlsContext,
+  ModalRemovePlsContext,
+} from "../providers/ProviderModals";
 import { WsConnectContext } from "../providers/ProviderConnection";
+import { ListChangesContext } from "../providers/ProviderChanges";
+import { ChangesInProcessContext } from "../providers/ProviderProcesses";
 
 export function SectionHomePlaylist() {
   //WS CONNECTED
   const wsConnected = useContext(WsConnectContext);
 
+  //LIST CHANGES
+  const { listChanges, setListChanges } = useContext(ListChangesContext);
+  const {changesInProcess, setChangesInProcess} = useContext(ChangesInProcessContext);
+
   //LIST LOCAL
-  const {listLocalPls} = useContext(ListLocalPlsContext);
+  const { listLocalPls } = useContext(ListLocalPlsContext);
 
   //LIST REMOTE
   const { listPls } = useContext(ListPlsContext);
-  const { setPlsSelected } = useContext(PlsSelectedContext);
-  const {setModalCreatePlsIsVisible} = useContext(ModalCreatePlsContext);
-  const {setModalRemovePlsIsVisible} = useContext(ModalRemovePlsContext)
+  const { plsSelected, setPlsSelected } = useContext(PlsSelectedContext);
+  const { setModalCreatePlsIsVisible } = useContext(ModalCreatePlsContext);
+  const { setModalRemovePlsIsVisible } = useContext(ModalRemovePlsContext);
 
   const playlistFlatListRef = useRef(null);
+
+  const getItemLayout = (data, index) => (
+    { length: 70, offset: 70 * index, index }
+  );
+
+  const getItemCount = (data) => data.length;
 
   const scrollToInit = () => {
     playlistFlatListRef.current.scrollToOffset({ animated: true, offset: 0 });
   };
 
+  const scrollToIndex = (index = 0) => {
+    playlistFlatListRef.current.scrollToIndex({ index: index, animated: true });
+  };
+
   useEffect(() => {
-    if (listPls.length > 1) {
+    if (listPls.length > 1 || listLocalPls.length > 1) {
       setPlsSelected(0);
       scrollToInit();
+      setListChanges([]);
     }
-  }, [listPls]);
+  }, [listPls, listLocalPls]);
+
+  useEffect(() => {
+    if (wsConnected && listChanges.length > 0) {
+      const index = listPls.findIndex((plsItem) => {
+        return plsItem.id === plsSelected;
+      });
+      if (index != -1) {
+        scrollToIndex(index);
+      }
+    }
+  }, [listChanges]);
+
+  //STYLES
+  const styles = StyleSheet.create({
+    container: {
+      pointerEvents: changesInProcess || listChanges.length > 0 ? "none" : "auto",
+      opacity: changesInProcess || listChanges.length > 0 ? 0.5 : 1,
+      flex: 2,
+      backgroundColor: mainTheme.SECONDARY_COLOR,
+      padding: 10,
+      width: "100%",
+      borderWidth: 1,
+      borderRadius: 10,
+      borderColor: mainTheme.FONT_COLOR2,
+    },
+    list: {
+      overflow: "scroll",
+    },
+    item: {
+      color: mainTheme.FONT_COLOR,
+    },
+    titleSection: {
+      position: "relative",
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      paddingBottom: 10,
+      color: mainTheme.FONT_COLOR,
+      borderBottomColor: mainTheme.FONT_COLOR2,
+      alignItems: "center",
+    },
+    titleNum: {
+      textAlign: "center",
+      alignItems: "center",
+      justifyContent: "center",
+      borderBottomWidth: 1,
+      borderColor: mainTheme.FONT_COLOR2,
+      fontSize: 20,
+      color: mainTheme.FONT_COLOR,
+      fontWeight: "200",
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "auto",
+      paddingHorizontal: 10,
+    },
+    titleText: {
+      flex: 1,
+      color: mainTheme.FONT_COLOR,
+      fontWeight: "200",
+      fontSize: 20,
+      textAlign: "center",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    titleSectionOptions: {
+      display: wsConnected ? "flex" : "none",
+      flex: 0.3,
+      gap: 20,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 2,
+      borderRadius: 10,
+      borderColor: mainTheme.FONT_COLOR2,
+      position: "absolute",
+      top: 0,
+      right: 0,
+      width: "auto",
+      paddingHorizontal: 10,
+    },
+    optionIcon: {
+      color: mainTheme.FONT_COLOR,
+      fontSize: 30,
+    },
+  });
 
   return (
     <View style={styles.container}>
       <View style={styles.titleSection}>
-        <Text style={styles.titleNum}>{listPls.length}</Text>
+        <Text style={styles.titleNum}>
+          {wsConnected ? listPls.length : listLocalPls.length}
+        </Text>
         <Text style={styles.titleText}> Playlists </Text>
         <View style={styles.titleSectionOptions}>
           <TouchableOpacity onPress={() => setModalCreatePlsIsVisible(true)}>
-            <Icon name="folder-plus" style={styles.optionIcon}  />
+            <Icon name="folder-plus" style={styles.optionIcon} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setModalRemovePlsIsVisible(true)}>
             <Icon name="folder-minus" style={styles.optionIcon} />
@@ -59,77 +169,9 @@ export function SectionHomePlaylist() {
         style={styles.list}
         data={wsConnected ? listPls : listLocalPls}
         renderItem={({ item }) => <PlaylistItem playlist={item} />}
+        getItemLayout={getItemLayout}
+        //getItemCount={getItemCount}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 0.3,
-    backgroundColor: mainTheme.SECONDARY_COLOR,
-    padding: 10,
-    width: "100%",
-    borderWidth: 1,
-    borderRadius: 10,
-    // marginVertical: 5,
-    borderColor: mainTheme.FONT_COLOR2,
-  },
-  list: {
-    overflow: "scroll",
-    // backgroundColor: "salmon",
-  },
-  item: {
-    color: mainTheme.FONT_COLOR,
-  },
-  titleSection: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    paddingBottom: 10,
-    color: mainTheme.FONT_COLOR,
-    borderBottomColor: mainTheme.FONT_COLOR2,
-    alignItems: "center",
-  },
-  titleNum: {
-    flex: .2,
-    textAlign: "center",
-    alignItems: "center",
-    justifyContent: "center",
-    // borderLeftWidth: 1,
-    // borderRightWidth: 1,
-    borderBottomWidth: 1,
-    // borderWidth: 1,
-    // borderRadius: 10,
-    borderColor: mainTheme.FONT_COLOR2,
-    fontSize: 20,
-    color: mainTheme.FONT_COLOR,
-    fontWeight: "200"
-  },
-  titleText: {
-    flex: .5,
-    color: mainTheme.FONT_COLOR,
-    fontWeight: "200",
-    fontSize: 20,
-    textAlign: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    // backgroundColor: "red"
-  },
-  titleSectionOptions: {
-    flex: .3,
-    gap: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    // borderLeftWidth: 1,
-    // borderRightWidth: 1,
-    // borderWidth: 1,
-    paddingVertical: 2,
-    borderRadius: 10,
-    borderColor: mainTheme.FONT_COLOR2
-  },
-  optionIcon: {
-    color: mainTheme.FONT_COLOR,
-    fontSize: 30,
-  },
-});

@@ -19,6 +19,7 @@ import {
 } from "../providers/ProviderConnection";
 import { ModalConnectContext } from "../providers/ProviderModals";
 import {
+  ChangesInProcessContext,
   MusicDurationContext,
   MusicPositionContext,
   PlayerContext,
@@ -26,35 +27,70 @@ import {
 } from "../providers/ProviderProcesses";
 import * as Progress from "react-native-progress";
 import TrackPlayer, { State, useProgress } from "react-native-track-player";
-import { ActiveMusicAuthorContext, ActiveMusicTitleContext } from "../providers/ProviderSelections";
+import {
+  ActiveMusicAuthorContext,
+  ActiveMusicTitleContext,
+} from "../providers/ProviderSelections";
+import { ListChangesContext } from "../providers/ProviderChanges";
 
 export function SectionPlayer() {
-  const wsIsConnected = useContext(WsConnectContext);
+  const wsConnected = useContext(WsConnectContext);
   const { setModalConnectIsVisible } = useContext(ModalConnectContext);
   const { playingMusic, setPlayingMusic } = useContext(PlayingMusicContext);
-  const {activeMusicTitle} = useContext(ActiveMusicTitleContext);
-  const {activeMusicAuthor} = useContext(ActiveMusicAuthorContext);
+  const { activeMusicTitle } = useContext(ActiveMusicTitleContext);
+  const { activeMusicAuthor } = useContext(ActiveMusicAuthorContext);
+
+  //LIST CHANGES
+  const {listChanges} = useContext(ListChangesContext);
+  const {changesInProcess, setChangesInProcess} = useContext(ChangesInProcessContext);
 
   const [widthProgressBar, setWidthProgressBar] = useState(0);
   // const [musicTitle, setMusicTitle] = useState("");
   // const [musicAuthor, setMusicAuthor] = useState("");
 
-  
   const getMusicTitle = async () => {
-    const track = await TrackPlayer.getActiveTrack()
-    return track.title
-  }
-  
+    const track = await TrackPlayer.getActiveTrack();
+    return track.title;
+  };
+
   const getMusicAuthor = async () => {
-    const track = await TrackPlayer.getActiveTrack()
-    return track.artist
-  }
+    const track = await TrackPlayer.getActiveTrack();
+    return track.artist;
+  };
 
   const progress = useProgress();
 
+  const onLayout = (event) => {
+    const { width } = event.nativeEvent.layout;
+    setWidthProgressBar(width);
+    // console.log(width);
+  };
+
+  const playMusic = async () => {
+    const pbState = await TrackPlayer.getPlaybackState();
+    // console.log(pbState)
+    if (pbState.state === State.Paused || pbState.state === State.Ready) {
+      await TrackPlayer.play();
+    }
+  };
+  const pauseMusic = async () => {
+    const pbState = await TrackPlayer.getPlaybackState();
+    if (pbState.state === State.Playing) {
+      await TrackPlayer.pause();
+    }
+  };
+  const skipPrevious = async () => {
+    await TrackPlayer.skipToPrevious();
+  };
+  const skipNext = async () => {
+    await TrackPlayer.skipToNext();
+  };
+
+  //STYLES
   const styles = StyleSheet.create({
     container: {
-      // flex: .2,
+      flex: 1,
+      display: changesInProcess || listChanges.length > 0 ? "none" : "flex",
       borderColor: mainTheme.FONT_COLOR2,
       backgroundColor: mainTheme.SECONDARY_COLOR,
       // opacity: wsIsConnected ? 1 : .7,
@@ -67,13 +103,14 @@ export function SectionPlayer() {
       // borderColor: mainTheme.FONT_COLOR
     },
     musicInfoContainer: {
-      flex: 1,
+      //flex: 1,
+      height: 45,
       // flexDirection: "row"
       borderBottomWidth: 1,
       borderColor: mainTheme.FONT_COLOR2,
-      paddingBottom: 2,
+      paddingBottom: 1,
       alignSelf: "flex-start",
-      paddingHorizontal: 3
+      paddingHorizontal: 3,
     },
     musicInfoTitle: {
       color: mainTheme.FONT_COLOR,
@@ -82,7 +119,7 @@ export function SectionPlayer() {
     },
     musicInfoAuthor: {
       color: mainTheme.FONT_COLOR2,
-      fontWeight: "300"
+      fontWeight: "300",
     },
     musicControlersContainer: {
       flex: 1,
@@ -107,32 +144,6 @@ export function SectionPlayer() {
       flex: 1,
     },
   });
-
-  const onLayout = (event) => {
-    const { width } = event.nativeEvent.layout;
-    setWidthProgressBar(width);
-    // console.log(width);
-  };
-
-  const playMusic = async () => {
-    const pbState = await TrackPlayer.getPlaybackState();
-    // console.log(pbState)
-    if ((pbState.state === State.Paused) || (pbState.state === State.Ready)) {
-      await TrackPlayer.play();
-    }
-  };
-  const pauseMusic = async () => {
-    const pbState = await TrackPlayer.getPlaybackState();
-    if (pbState.state === State.Playing) {
-      await TrackPlayer.pause();
-    }
-  };
-  const skipPrevious = async () => {
-    await TrackPlayer.skipToPrevious();
-  };
-  const skipNext = async () => {
-    await TrackPlayer.skipToNext();
-  };
 
   return (
     <View style={styles.container}>

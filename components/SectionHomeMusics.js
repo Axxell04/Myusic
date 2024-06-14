@@ -7,27 +7,44 @@ import {
   ToastAndroid,
 } from "react-native";
 import { mainTheme } from "./Palete";
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { MusicItem } from "./MusicItem";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { ListLocalMusicsContext, ListMusicsContext } from "../providers/ProviderLists";
+import {
+  ListLocalMusicsContext,
+  ListMusicsContext,
+} from "../providers/ProviderLists";
 import { PlsSelectedContext } from "../providers/ProviderSelections";
-import { ModalAddMusicContext, ModalAddMusicToPlsContext, ModalRemoveMusicToPlsContext } from "../providers/ProviderModals";
+import {
+  ModalAddMusicContext,
+  ModalAddMusicToPlsContext,
+  ModalRemoveMusicToPlsContext,
+} from "../providers/ProviderModals";
 import { WsConnectContext } from "../providers/ProviderConnection";
+import { ListChangesContext } from "../providers/ProviderChanges";
+import { ChangesInProcessContext } from "../providers/ProviderProcesses";
 
 export function SectionHomeMusics() {
   //WS CONNECTED
   const wsConnected = useContext(WsConnectContext);
 
+  //LIST CHANGES
+  const {listChanges} = useContext(ListChangesContext);
+  const {changesInProcess, setChangesInProcess} = useContext(ChangesInProcessContext);
+
   //LIST LOCAL
-  const {listLocalMusics} = useContext(ListLocalMusicsContext);
+  const { listLocalMusics } = useContext(ListLocalMusicsContext);
 
   //LIST REMOTE
   const { listMusics } = useContext(ListMusicsContext);
   const { plsSelected } = useContext(PlsSelectedContext);
   const { setModalAddMusicIsVisible } = useContext(ModalAddMusicContext);
-  const {setModalRemoveMusicToPlsIsVisible} = useContext(ModalRemoveMusicToPlsContext);
-  const { setModalAddMusicToPlsIsVisible } = useContext(ModalAddMusicToPlsContext);
+  const { setModalRemoveMusicToPlsIsVisible } = useContext(
+    ModalRemoveMusicToPlsContext
+  );
+  const { setModalAddMusicToPlsIsVisible } = useContext(
+    ModalAddMusicToPlsContext
+  );
 
   const musicFlatListRef = useRef(null);
 
@@ -35,11 +52,15 @@ export function SectionHomeMusics() {
     musicFlatListRef.current.scrollToOffset({ animated: true, offset: 0 });
   };
 
+  const getItemLayout = (data, index) => (
+    {length: 80, offset: 80 * index, index: index}
+  )
+
   useEffect(() => {
-    if (listMusics.length > 1) {
+    if (listMusics.length > 1 || listLocalMusics.length > 1) {
       scrollToInit();
     }
-  }, [listMusics]);
+  }, [listMusics, listLocalMusics]);
 
   function addMusic() {
     // ToastAndroid.show("Add music", ToastAndroid.SHORT);
@@ -55,10 +76,86 @@ export function SectionHomeMusics() {
     setModalRemoveMusicToPlsIsVisible(true);
   }
 
+  //STYLES
+  const styles = StyleSheet.create({
+    container: {
+      pointerEvents: changesInProcess ? "none" : "auto",
+      opacity: changesInProcess ? 0.5 : 1,
+      flex: changesInProcess || listChanges.length > 0 ? 5.3 : 5,
+      backgroundColor: mainTheme.SECONDARY_COLOR,
+      padding: 10,
+      width: "100%",
+      borderWidth: 1,
+      borderRadius: 10,
+      borderColor: mainTheme.FONT_COLOR2,
+    },
+    list: {
+      overflow: "scroll",
+    },
+    item: {
+      color: mainTheme.FONT_COLOR,
+    },
+    titleSection: {
+      position: "relative",
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      paddingBottom: 10,
+      color: mainTheme.FONT_COLOR,
+      borderBottomColor: mainTheme.FONT_COLOR2,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    titleNum: {
+      textAlign: "center",
+      alignItems: "center",
+      justifyContent: "center",
+      borderBottomWidth: 1,
+      borderColor: mainTheme.FONT_COLOR2,
+      fontSize: 20,
+      color: mainTheme.FONT_COLOR,
+      fontWeight: "200",
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "auto",
+      paddingHorizontal: 10,
+    },
+    titleText: {
+      flex: 1,
+      color: mainTheme.FONT_COLOR,
+      fontWeight: "200",
+      fontSize: 20,
+      textAlign: "center",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    titleSectionOptions: {
+      display: wsConnected ? "flex" : "none",
+      gap: 20,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 2,
+      borderRadius: 10,
+      borderColor: mainTheme.FONT_COLOR2,
+      position: "absolute",
+      top: 0,
+      right: 0,
+      width: "auto",
+      paddingHorizontal: 10,
+    },
+    optionIcon: {
+      color: mainTheme.FONT_COLOR,
+      fontSize: 30,
+    },
+  });
+
   return (
     <View style={styles.container}>
       <View style={styles.titleSection}>
-        <Text style={styles.titleNum}>{listMusics.length}</Text>
+        <Text style={styles.titleNum}>
+          {wsConnected ? listMusics.length : listLocalMusics.length}
+        </Text>
         <Text style={styles.titleText}> Canciones </Text>
         <View style={styles.titleSectionOptions}>
           <TouchableOpacity onPress={addMusic}>
@@ -75,79 +172,8 @@ export function SectionHomeMusics() {
         scroll
         data={wsConnected ? listMusics : listLocalMusics}
         renderItem={({ item }) => <MusicItem music={item} />}
+        getItemLayout={getItemLayout}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 0.7,
-    backgroundColor: mainTheme.SECONDARY_COLOR,
-    padding: 10,
-    width: "100%",
-    borderWidth: 1,
-    borderRadius: 10,
-    // marginVertical: 5,
-    borderColor: mainTheme.FONT_COLOR2,
-  },
-  list: {
-    overflow: "scroll",
-    // marginVertical: 10
-  },
-  item: {
-    color: mainTheme.FONT_COLOR,
-  },
-  titleSection: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    paddingBottom: 10,
-    color: mainTheme.FONT_COLOR,
-    borderBottomColor: mainTheme.FONT_COLOR2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  titleNum: {
-    flex: 0.2,
-    textAlign: "center",
-    alignItems: "center",
-    justifyContent: "center",
-    // borderLeftWidth: 1,
-    // borderRightWidth: 1,
-    borderBottomWidth: 1,
-    // borderWidth: 1,
-    // borderRadius: 10,
-    borderColor: mainTheme.FONT_COLOR2,
-    fontSize: 20,
-    color: mainTheme.FONT_COLOR,
-    fontWeight: "200",
-  },
-  titleText: {
-    flex: 0.5,
-    color: mainTheme.FONT_COLOR,
-    fontWeight: "200",
-    fontSize: 20,
-    textAlign: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    // alignSelf: "center",
-    // backgroundColor: "red"
-  },
-  titleSectionOptions: {
-    flex: 0.3,
-    gap: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    // borderLeftWidth: 1,
-    // borderRightWidth: 1,
-    // borderWidth: 1,
-    paddingVertical: 2,
-    borderRadius: 10,
-    borderColor: mainTheme.FONT_COLOR2,
-  },
-  optionIcon: {
-    color: mainTheme.FONT_COLOR,
-    fontSize: 30,
-  },
-});

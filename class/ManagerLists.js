@@ -3,9 +3,13 @@ import { ListLocalMusicsContext, ListLocalPlsContext, UpdateListLocalMusicsConte
 import { PlsSelectedContext } from "../providers/ProviderSelections";
 import { RequestStateContext } from "../providers/ProviderModels";
 import { RequestModel } from "../models/RequestModel";
+import { WsConnectContext } from "../providers/ProviderConnection";
 
 
 export function ManagerLists () {
+    //WS CONNECTED
+    const wsConnected = useContext(WsConnectContext);
+
     //LOCAL LIST
     const {listLocalPls, setListLocalPls} = useContext(ListLocalPlsContext);
     const {listLocalMusics, setListLocalMusics} = useContext(ListLocalMusicsContext);
@@ -33,6 +37,12 @@ export function ManagerLists () {
             setUpdateListLocalMusics(false);
         }
     }, [updateListLocalMusics])
+
+    useEffect(() => {
+        if (listLocalMusics.length === 0 && !wsConnected) {
+            setPlsSelected(0);
+        }
+    }, [listLocalMusics])
 
     return <></>;
 }

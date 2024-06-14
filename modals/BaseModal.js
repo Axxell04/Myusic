@@ -119,19 +119,20 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   buttonPrimary: {
-    flex: 1,
+    //flex: 1,
     backgroundColor: "#c7f464",
   },
   buttonSecondary: {
-    flex: 1,
+    //flex: 1,
     backgroundColor: "#80bca3",
   },
   sectionButtons: {
-    flexDirection: "row",
+    flexDirection: "column",
     gap: 10,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "stretch",
     paddingHorizontal: 20,
+    width: "100%"
   },
   input: {
     borderBottomWidth: 1,

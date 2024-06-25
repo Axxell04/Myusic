@@ -26,8 +26,8 @@ export function ManagerChanges() {
   useEffect(() => {
     // console.log(confirmChanges);
     //##PETICIÓN 2 Y 3 SE ENVÍAN PRACTICAMENTE A LA VEZ POR LO QUE LA LISTA DE ARCHIVOS POR AÑADIR NO ES CONSISTENTE
-    console.log(requestState);
-    console.log(listFilesToAdd);
+    //console.log(requestState);
+    //console.log(listFilesToAdd);
     if (confirmChanges && !requestState) {
       if (listChanges.length > 0) {
         

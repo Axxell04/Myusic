@@ -1,7 +1,7 @@
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { mainTheme } from "./Palete";
 import Icon from "react-native-vector-icons/AntDesign";
-import { act, useContext, useEffect, useState } from "react";
+import { act, memo, useCallback, useContext, useEffect, useState } from "react";
 import { PlayerContext } from "../providers/ProviderProcesses";
 import {
   IpServerContext,
@@ -21,11 +21,89 @@ import {
 import { ListChangesContext } from "../providers/ProviderChanges";
 import { MusicChangeModel, MusicModel } from "../models/MusicModel";
 
+const MusicItemInfo = memo(({music}) => {
+  const styles = StyleSheet.create({
+    section1_1: {
+      flexDirection: "row",
+      overflow: "scroll",
+      alignItems: "center",
+    },
+    title: {
+      color: mainTheme.FONT_COLOR,
+      height: 22,
+      fontSize: 15,
+      fontWeight: "300",
+    },
+    author: {
+      height: 21,
+      flex: 0.8,
+      paddingRight: 5,
+      color: mainTheme.FONT_COLOR2,
+      fontWeight: "300",    
+
+    },
+    duration: {
+      flex: 0.2,
+      borderBottomWidth: 0.5,
+      paddingHorizontal: 5,
+      textAlign: "center",
+      color: mainTheme.FONT_COLOR2,
+      borderBottomColor: mainTheme.FONT_COLOR,
+      fontWeight: "300",
+    },
+  });
+  const formatDuration = useCallback((duration) => {
+    const arrayDuration = duration.split(":");
+    const h = arrayDuration[0];
+    const m = arrayDuration[1];
+    const s = arrayDuration[2];
+
+    if (h === "00") {
+      return `${m}:${s}`;
+    } else {
+      return duration;
+    }
+  }, []);
+  console.log(music);
+  return (
+    <>
+    <Text key={music.path} style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+      {music.name}
+    </Text>
+    <View style={styles.section1_1}>
+      <Text style={styles.author} numberOfLines={1} ellipsizeMode="tail">{music.author}</Text>
+      <Text style={styles.duration}>{formatDuration(music.duration)}</Text>
+    </View>
+    </>
+  )
+})
+
+//MUSIC ITEM ICON SYNC
+const MusicItemIconSync = memo(({actualSyncState}) => {
+  const styles = StyleSheet.create({
+    icon: {
+      color: mainTheme.FONT_COLOR,
+      textAlign: "center",
+    },
+  });
+  console.log("ActualSyncState: "+actualSyncState)
+  return (
+    <Icon
+      name={actualSyncState ? "checkcircle" : "checkcircleo"}
+      size={30}
+      style={styles.icon}
+    />
+  )
+})
+
 export function MusicItem({ music }) {
+  //##EL ITEM SE ESTÁ VOLVIENDO A RENDERIZAR ANQUE SU CONTENIDO "ESTÁTICO" QUE SE MUESTRA EN PANTALLA COMO NOMBRE, AUTOR Y DURACIÓN CON CAMBIA
+  //** CREAR OTRO COMPONENTE HIJO AL QUE SOLO SE LE PASARÁ LA INFORMACIÓN ESTÁTICA COMO NOMBRE Y DEMÁS, EL CUAL SERÁ QUIEN SE RENDERIZARÁ REALMENTE 
+  //console.log(music)
   //WS CONNECTED
   const wsConnected = useContext(WsConnectContext);
 
-  //LIST LOCAL
+  //LIST LOCAL ##OPTIMIZAR
   const { listLocalMusics } = useContext(ListLocalMusicsContext);
 
   //SYNC STATE
@@ -40,20 +118,8 @@ export function MusicItem({ music }) {
   const { setListTrack } = useContext(ListTrackContext);
   const { setIdListTrack } = useContext(IdListTrackContext);
   const { setTrackSelected } = useContext(TrackSelectedContext);
-  const { ipServer } = useContext(IpServerContext);
-  const player = useContext(PlayerContext);
-  const formatDuration = (duration) => {
-    var arrayDuration = duration.split(":");
-    var h = arrayDuration[0];
-    var m = arrayDuration[1];
-    var s = arrayDuration[2];
 
-    if (h === "00") {
-      return `${m}:${s}`;
-    } else {
-      return duration;
-    }
-  };
+  
 
   const getIndexOfMusic = async () => {
     const index = (await TrackPlayer.getQueue()).findIndex((track) => {
@@ -61,7 +127,6 @@ export function MusicItem({ music }) {
         return true;
       }
     });
-    // console.log("Index: "+ index);
     return index;
   };
 
@@ -71,17 +136,17 @@ export function MusicItem({ music }) {
     } else {
       setListTrack(listLocalMusics)
     }
-    //setListTrack(wsConnected ? listMusics : listLocalMusics);
   };
 
-  //console.log(music)
+  //##ENVIAR ESTE MÉTODO AL HIJO, SIN CAER EN RE-RENDERIZADOS INNECESARIOS
+  //** HACER QUE EL TOCHABLEOPACITY PERTENEZCA AL PADRE Y PINTAR AL HIJO DENTRO, ASÍ EL EVENTO SEGUIRÁ PERTENECIENDO AL PADRE SIN NECESIDAD DE RE-RENDERIZAR AL HIJO
   const playMusic = () => {
     setTrackSelected(music);
     changeListTrack();
     setIdListTrack(plsSelected);
   };
 
-  const [indexMusic, setIndexMusic] = useState(getIndexOfMusic());
+  //const [indexMusic, setIndexMusic] = useState(getIndexOfMusic());
 
   const changeSyncState = () => {
     if (initSyncState != !actualSyncState) {
@@ -129,7 +194,6 @@ export function MusicItem({ music }) {
   useEffect(() => {
     setActualSyncState(initSyncState);
   }, [initSyncState]);
-
   //STYLES
   const styles = StyleSheet.create({
     container: {
@@ -150,11 +214,6 @@ export function MusicItem({ music }) {
       gap: 5,
       borderRadius: 10,
     },
-    section1_1: {
-      flexDirection: "row",
-      overflow: "scroll",
-      alignItems: "center",
-    },
     section2: {
       display: (plsSelected != 0 && wsConnected) ? "flex" : "none",
       borderRadius: 50,
@@ -162,56 +221,19 @@ export function MusicItem({ music }) {
       justifyContent: "center",
       paddingVertical: 10,
     },
-    title: {
-      color: mainTheme.FONT_COLOR,
-      height: 22,
-      fontSize: 15,
-      fontWeight: "300",
-    },
-    author: {
-      height: 21,
-      flex: 0.8,
-      paddingRight: 5,
-      color: mainTheme.FONT_COLOR2,
-      fontWeight: "300",    
-
-    },
-    duration: {
-      flex: 0.2,
-      borderBottomWidth: 0.5,
-      paddingHorizontal: 5,
-      textAlign: "center",
-      color: mainTheme.FONT_COLOR2,
-      borderBottomColor: mainTheme.FONT_COLOR,
-      fontWeight: "300",
-    },
-    icon: {
-      color: mainTheme.FONT_COLOR,
-      textAlign: "center",
-    },
   });
 
 
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.section1} onPress={() => playMusic()}>
-        <Text key={music.path} style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-          {music.name}
-        </Text>
-        <View style={styles.section1_1}>
-          <Text style={styles.author} numberOfLines={1} ellipsizeMode="tail">{music.author}</Text>
-          <Text style={styles.duration}>{formatDuration(music.duration)}</Text>
-        </View>
+        <MusicItemInfo music={music} />
       </TouchableOpacity>
       <TouchableOpacity
           style={styles.section2}
           onPress={() => changeSyncState()}
         >
-          <Icon
-            name={actualSyncState ? "checkcircle" : "checkcircleo"}
-            size={30}
-            style={styles.icon}
-          />
+          <MusicItemIconSync actualSyncState={actualSyncState} />
         </TouchableOpacity>
     </View>
   );

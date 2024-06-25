@@ -38,13 +38,14 @@ export function MusicPlayer() {
 
   const initPlayer = async () => {
     try {
-      await TrackPlayer.setupPlayer();
+      await TrackPlayer.setupPlayer({autoHandleInterruptions: true});
       await TrackPlayer.updateOptions({
         capabilities: [
           Capability.Play,
           Capability.Pause,
           Capability.SkipToNext,
           Capability.SkipToPrevious,
+          Capability.SeekTo
         ],
         compactCapabilities: [
           Capability.Play,
@@ -152,6 +153,10 @@ export function MusicPlayer() {
       );
     }
   });
+
+  useTrackPlayerEvents([Event.PlaybackQueueEnded], async (event) => {
+    setTrackSelected(listTrack[0]);
+  })
 
   useEffect(() => {
     initPlayer();

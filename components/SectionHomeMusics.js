@@ -5,9 +5,10 @@ import {
   Text,
   TouchableOpacity,
   ToastAndroid,
+  VirtualizedList,
 } from "react-native";
 import { mainTheme } from "./Palete";
-import { useContext, useEffect, useRef, useState } from "react";
+import { memo, useContext, useEffect, useRef, useState } from "react";
 import { MusicItem } from "./MusicItem";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import {
@@ -23,6 +24,8 @@ import {
 import { WsConnectContext } from "../providers/ProviderConnection";
 import { ListChangesContext } from "../providers/ProviderChanges";
 import { ChangesInProcessContext } from "../providers/ProviderProcesses";
+
+const MemoMusicItem = memo(MusicItem)
 
 export function SectionHomeMusics() {
   //WS CONNECTED
@@ -55,6 +58,10 @@ export function SectionHomeMusics() {
   const getItemLayout = (data, index) => (
     {length: 80, offset: 80 * index, index: index}
   )
+
+  const getItemCount = (data) => data.length;
+
+  const getItem = (data, index) => data[index];
 
   useEffect(() => {
     if (listMusics.length > 1 || listLocalMusics.length > 1) {
@@ -166,13 +173,17 @@ export function SectionHomeMusics() {
           </TouchableOpacity>
         </View>
       </View>
-      <FlatList
+      <VirtualizedList
         ref={musicFlatListRef}
         style={styles.list}
         scroll
         data={wsConnected ? listMusics : listLocalMusics}
-        renderItem={({ item }) => <MusicItem music={item} />}
+        renderItem={({ item }) => <MemoMusicItem music={item} />}
+        keyExtractor={(item) => item.id}
+        initialNumToRender={10}
         getItemLayout={getItemLayout}
+        getItem={getItem}
+        getItemCount={getItemCount}
       />
     </View>
   );

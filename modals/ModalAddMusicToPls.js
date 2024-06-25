@@ -1,6 +1,6 @@
-import { useContext, useEffect, useState, Toucha } from "react";
+import { useContext, useEffect, useState, Toucha, useCallback } from "react";
 import { BaseModal } from "./BaseModal";
-import { FlatList, TouchableOpacity, Text, ToastAndroid } from "react-native";
+import { FlatList, TouchableOpacity, Text, ToastAndroid, VirtualizedList } from "react-native";
 import { ModalAddMusicToPlsContext } from "../providers/ProviderModals";
 import { ManagerWSContext, WsConnectContext } from "../providers/ProviderConnection";
 import { ListMusicsContext } from "../providers/ProviderLists";
@@ -26,13 +26,11 @@ const MusicItem = ({ item, musicsSelected, setMusicsSelected }) => {
   }
 
   return (
-    <TouchableOpacity onPress={changeSelected}>
+    <TouchableOpacity onPress={changeSelected} style={{height: 40, marginVertical: 5, backgroundColor: isSelected ? "lightgreen" : null, justifyContent: "center"}}>
       <Text
         key={`${item.id}111111${item.name}`}
-        style={{
-          backgroundColor: isSelected ? "lightgreen" : null,
-          textAlign: "center",
-        }}
+        style={{textAlign: "center"}}
+        numberOfLines={2}
       >
         {item.name}
       </Text>
@@ -53,9 +51,17 @@ export function ModalAddMusicToPls() {
   const [validListMusics, setValidListMusics] = useState([]);
   const [musicsSelected, setMusicsSelected] = useState([]);
 
-  function resetSelect() {
+  const getItemLayout = (data, index) => (
+    {length: 50, offset: 50 * index, index: index}
+  );
+
+  const getItemCount = (data) => data.length;
+
+  const getItem = (data, index) => data[index];
+
+  const  resetSelect = useCallback(() => {
     setMusicsSelected([]);
-  }
+  }, [])
 
   useEffect(() => {
     if (!modalAddMusicToPlsIsVisible) {
@@ -108,7 +114,7 @@ export function ModalAddMusicToPls() {
         onPress: addMusicToPls,
       }}
     >
-      <FlatList
+      <VirtualizedList
         data={validListMusics}
         style={{ maxHeight: 400, width: "90%" }}
         renderItem={({ item }) => (
@@ -118,6 +124,11 @@ export function ModalAddMusicToPls() {
             setMusicsSelected={setMusicsSelected}
           />
         )}
+        keyExtractor={(item) => `${item.id}111111${item.name}`}
+        initialNumToRender={10}
+        getItemLayout={getItemLayout}
+        getItem={getItem}
+        getItemCount={getItemCount}
       />
     </BaseModal>
   );

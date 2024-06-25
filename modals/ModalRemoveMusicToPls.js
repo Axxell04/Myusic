@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ToastAndroid,
   Alert,
+  VirtualizedList,
 } from "react-native";
 import { ModalRemoveMusicToPlsContext } from "../providers/ProviderModals";
 import {
@@ -40,13 +41,10 @@ const MusicItem = ({ item, musicsSelected, setMusicsSelected }) => {
   }
 
   return (
-    <TouchableOpacity onPress={changeSelected}>
+    <TouchableOpacity onPress={changeSelected} style={{height: 40, marginVertical: 5, backgroundColor: isSelected ? "salmon" : null, justifyContent: "center"}}>
       <Text
         key={`${item.id}77777${item.name}`}
-        style={{
-          backgroundColor: isSelected ? "salmon" : null,
-          textAlign: "center",
-        }}
+        style={{textAlign: "center"}}
       >
         {item.name}
       </Text>
@@ -66,6 +64,14 @@ export function ModalRemoveMusicToPls() {
 
   const [musicsSelected, setMusicsSelected] = useState([]);
   const [validListMusics, setValidListMusics] = useState([]);
+
+  const getItemLayout = (data, index) => (
+    {length: 50, offset: 50 * index, index: index}
+  );
+
+  const getItemCount = (data) => data.length;
+
+  const getItem = (data, index) => data[index];
 
   function resetSelect() {
     setMusicsSelected([]);
@@ -153,7 +159,7 @@ export function ModalRemoveMusicToPls() {
         onPress: removeToPls,
       }}
     >
-      <FlatList
+      <VirtualizedList
         data={validListMusics}
         style={{ maxHeight: 400, width: "90%" }}
         renderItem={({ item }) => (
@@ -163,6 +169,9 @@ export function ModalRemoveMusicToPls() {
             setMusicsSelected={setMusicsSelected}
           />
         )}
+        getItemLayout={getItemLayout}
+        getItemCount={getItemCount}
+        getItem={getItem}
       />
     </BaseModal>
   );

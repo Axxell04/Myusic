@@ -4,6 +4,7 @@ import {
   FlatList,
   Text,
   TouchableOpacity,
+  VirtualizedList,
 } from "react-native";
 import { mainTheme } from "./Palete";
 import { useContext, useEffect, useRef } from "react";
@@ -46,6 +47,8 @@ export function SectionHomePlaylist() {
   );
 
   const getItemCount = (data) => data.length;
+
+  const getItem = (data, index) => data[index];
 
   const scrollToInit = () => {
     playlistFlatListRef.current.scrollToOffset({ animated: true, offset: 0 });
@@ -164,13 +167,15 @@ export function SectionHomePlaylist() {
           </TouchableOpacity>
         </View>
       </View>
-      <FlatList
+      <VirtualizedList
         ref={playlistFlatListRef}
         style={styles.list}
         data={wsConnected ? listPls : listLocalPls}
         renderItem={({ item }) => <PlaylistItem playlist={item} />}
+        keyExtractor={(item) => item.id}
         getItemLayout={getItemLayout}
-        //getItemCount={getItemCount}
+        getItemCount={getItemCount}
+        getItem={getItem}
       />
     </View>
   );

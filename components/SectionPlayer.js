@@ -13,12 +13,6 @@ import Icon from "react-native-vector-icons/AntDesign";
 import Icon2 from "react-native-vector-icons/FontAwesome6";
 import { mainTheme } from "./Palete";
 import {
-  IpServerContext,
-  ManagerWSContext,
-  WsConnectContext,
-} from "../providers/ProviderConnection";
-import { ModalConnectContext } from "../providers/ProviderModals";
-import {
   ChangesInProcessContext,
   MusicDurationContext,
   MusicPositionContext,
@@ -31,18 +25,17 @@ import {
   ActiveMusicAuthorContext,
   ActiveMusicTitleContext,
 } from "../providers/ProviderSelections";
-import { ListChangesContext } from "../providers/ProviderChanges";
+import { CounterChangesTotalContext } from "../providers/ProviderChanges";
 
 export function SectionPlayer() {
-  const wsConnected = useContext(WsConnectContext);
-  const { setModalConnectIsVisible } = useContext(ModalConnectContext);
   const { playingMusic, setPlayingMusic } = useContext(PlayingMusicContext);
   const { activeMusicTitle } = useContext(ActiveMusicTitleContext);
   const { activeMusicAuthor } = useContext(ActiveMusicAuthorContext);
 
-  //LIST CHANGES
-  const {listChanges} = useContext(ListChangesContext);
   const {changesInProcess, setChangesInProcess} = useContext(ChangesInProcessContext);
+
+  //COUNTER CHANGES
+  const {counterChangesTotal} = useContext(CounterChangesTotalContext);
 
   const [widthProgressBar, setWidthProgressBar] = useState(0);
   // const [musicTitle, setMusicTitle] = useState("");
@@ -90,7 +83,7 @@ export function SectionPlayer() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      display: changesInProcess || listChanges.length > 0 ? "none" : "flex",
+      display: changesInProcess || counterChangesTotal > 0 ? "none" : "flex",
       borderColor: mainTheme.FONT_COLOR2,
       backgroundColor: mainTheme.SECONDARY_COLOR,
       // opacity: wsIsConnected ? 1 : .7,

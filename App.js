@@ -50,10 +50,10 @@ export default function App() {
           <SectionPlayer />
           <SectionChanges />
         </View>
-        <ManagerFiles />
+        {/* <ManagerFiles /> */}
         <ManagerLists />
-        <ManagerModels />
-        <ManagerChanges />
+        {/* <ManagerModels /> */}
+        {/* <ManagerChanges /> */}
         <MusicPlayer />
         <ModalConnect />
         <ModalAddMusic />

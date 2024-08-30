@@ -22,7 +22,7 @@ import {
   ModalRemoveMusicToPlsContext,
 } from "../providers/ProviderModals";
 import { WsConnectContext } from "../providers/ProviderConnection";
-import { ListChangesContext } from "../providers/ProviderChanges";
+import { CounterChangesTotalContext } from "../providers/ProviderChanges";
 import { ChangesInProcessContext } from "../providers/ProviderProcesses";
 
 const MemoMusicItem = memo(MusicItem)
@@ -32,8 +32,10 @@ export function SectionHomeMusics() {
   const wsConnected = useContext(WsConnectContext);
 
   //LIST CHANGES
-  const {listChanges} = useContext(ListChangesContext);
   const {changesInProcess, setChangesInProcess} = useContext(ChangesInProcessContext);
+
+  //COUNTER CHANGES
+  const {counterChangesTotal} = useContext(CounterChangesTotalContext)
 
   //LIST LOCAL
   const { listLocalMusics } = useContext(ListLocalMusicsContext);
@@ -88,7 +90,7 @@ export function SectionHomeMusics() {
     container: {
       pointerEvents: changesInProcess ? "none" : "auto",
       opacity: changesInProcess ? 0.5 : 1,
-      flex: changesInProcess || listChanges.length > 0 ? 5.3 : 5,
+      flex: changesInProcess || counterChangesTotal > 0 ? 5.3 : 5,
       backgroundColor: mainTheme.SECONDARY_COLOR,
       padding: 10,
       width: "100%",

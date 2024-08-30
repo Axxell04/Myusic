@@ -1,7 +1,6 @@
 import {
   StyleSheet,
   View,
-  FlatList,
   Text,
   TouchableOpacity,
   VirtualizedList,
@@ -20,16 +19,18 @@ import {
   ModalRemovePlsContext,
 } from "../providers/ProviderModals";
 import { WsConnectContext } from "../providers/ProviderConnection";
-import { ListChangesContext } from "../providers/ProviderChanges";
+import { CounterChangesTotalContext } from "../providers/ProviderChanges";
 import { ChangesInProcessContext } from "../providers/ProviderProcesses";
 
 export function SectionHomePlaylist() {
   //WS CONNECTED
   const wsConnected = useContext(WsConnectContext);
 
-  //LIST CHANGES
-  const { listChanges, setListChanges } = useContext(ListChangesContext);
-  const {changesInProcess, setChangesInProcess} = useContext(ChangesInProcessContext);
+  //CHANGES IN PROCESS
+  const {changesInProcess} = useContext(ChangesInProcessContext);
+
+  //COUNTER CHANGES
+  const {counterChangesTotal} = useContext(CounterChangesTotalContext);
 
   //LIST LOCAL
   const { listLocalPls } = useContext(ListLocalPlsContext);
@@ -62,12 +63,11 @@ export function SectionHomePlaylist() {
     if (listPls.length > 1 || listLocalPls.length > 1) {
       setPlsSelected(0);
       scrollToInit();
-      setListChanges([]);
     }
   }, [listPls, listLocalPls]);
 
   useEffect(() => {
-    if (wsConnected && listChanges.length > 0) {
+    if (wsConnected && counterChangesTotal > 0) {
       const index = listPls.findIndex((plsItem) => {
         return plsItem.id === plsSelected;
       });
@@ -75,13 +75,13 @@ export function SectionHomePlaylist() {
         scrollToIndex(index);
       }
     }
-  }, [listChanges]);
+  }, [counterChangesTotal]);
 
   //STYLES
   const styles = StyleSheet.create({
     container: {
-      pointerEvents: changesInProcess || listChanges.length > 0 ? "none" : "auto",
-      opacity: changesInProcess || listChanges.length > 0 ? 0.5 : 1,
+      pointerEvents: changesInProcess || counterChangesTotal > 0 ? "none" : "auto",
+      opacity: changesInProcess || counterChangesTotal > 0 ? 0.5 : 1,
       flex: 2,
       backgroundColor: mainTheme.SECONDARY_COLOR,
       padding: 10,

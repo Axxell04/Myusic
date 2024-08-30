@@ -4,51 +4,31 @@ import * as Progress from "react-native-progress";
 import { mainTheme } from "./Palete";
 import { RequestModel } from "../models/RequestModel";
 import { useContext, useEffect, useState } from "react";
-import { RequestStateContext } from "../providers/ProviderModels";
 import {
-  ConfirmChangesContext,
-  DoneChangesContext,
-  ListChangesContext,
-  PlsTargetChangesContext,
-  TotalChangesContext,
+  CounterChangesTotalContext,
+  CounterDoneChangesContext,
+  ManagerChangesContext,
 } from "../providers/ProviderChanges";
 import { ChangesInProcessContext } from "../providers/ProviderProcesses";
 
 export function SectionChanges() {
-  const { requestState, setRequestState } = useContext(RequestStateContext);
-  const { confirmChanges, setConfirmChanges } = useContext(
-    ConfirmChangesContext
-  );
   const {changesInProcess, setChangesInProcess} = useContext(ChangesInProcessContext);
-  const { listChanges, setListChanges } = useContext(ListChangesContext);
-  const {totalChanges, setTotalChanges} = useContext(TotalChangesContext);
-  const {doneChanges, setDoneChanges} = useContext(DoneChangesContext);
-  const { plsTargetChanges, setPlsTargetChanges } = useContext(
-    PlsTargetChangesContext
-  );
 
   const [widthProgressBar, setWidthProgessBar] = useState(0);
 
-  const get = async () => {
-    //setRequestState(new RequestModel("getSyncPls"));
-    const localURI =
-      FileSystem.documentDirectory + "musics/" + plsTargetChanges.name;
-    const infoDir = await FileSystem.getInfoAsync(localURI);
-    if (infoDir.exists) {
-      console.log(await FileSystem.readDirectoryAsync(localURI));
-    } else {
-      console.log("Directorio no existe");
-    }
-  };
+  //MANAGER CHANGES
+  const managerChanges = useContext(ManagerChangesContext);
+
+  //Contadores de cambios
+  const {counterChangesTotal} = useContext(CounterChangesTotalContext);
+  const {counterDoneChanges} = useContext(CounterDoneChangesContext);
 
   const clearChanges = () => {
-    setListChanges([]);
+    managerChanges.removeAllChanges();
   };
 
   const makeChanges = () => {
-    setConfirmChanges(true);
-    setChangesInProcess(true);
-    setTotalChanges(listChanges.length);
+    managerChanges.makeChanges();
   };
 
   const onLayout = (event) => {
@@ -56,22 +36,12 @@ export function SectionChanges() {
     setWidthProgessBar(width);
   }
 
-  useEffect(() => {
-    console.log("Cambios realizados "+doneChanges)
-    if (doneChanges === totalChanges && totalChanges > 0) {
-      console.log("Cambios Terminados")
-      setChangesInProcess(false);
-      setTotalChanges(0);
-      setDoneChanges(0);
-    }
-  }, [doneChanges])
-
   //STYLES
   const styles = StyleSheet.create({
     container: {
       height: 80,
       flex: .7,
-      display: changesInProcess || listChanges.length > 0 ? "flex" : "none",
+      display: changesInProcess || counterChangesTotal > 0 ? "flex" : "none",
       flexDirection: "row",
       borderColor: mainTheme.FONT_COLOR2,
       backgroundColor: mainTheme.SECONDARY_COLOR,
@@ -140,9 +110,9 @@ export function SectionChanges() {
   return (
     <View style={styles.container}>
       <View style={styles.sectionText}>
-        <Text style={styles.counter}>{listChanges.length}</Text>
+        <Text style={styles.counter}>{counterChangesTotal}</Text>
         <Text style={styles.title}>
-          {listChanges.length === 1 ? "Cambio Pendiente" : "Cambios Pendientes"}
+          {counterChangesTotal === 1 ? "Cambio Pendiente" : "Cambios Pendientes"}
         </Text>
       </View>
       <View style={styles.sectionButtons}>
@@ -161,8 +131,8 @@ export function SectionChanges() {
       </View>
       <View style={styles.sectionP} onLayout={onLayout}>
         <Text style={styles.textP}>Cambios Realizados</Text>
-        <Text style={styles.counterP}>{doneChanges} / {totalChanges}</Text>
-        <Progress.Bar progress={totalChanges > 0 && totalChanges > doneChanges ? doneChanges / totalChanges : 0} width={widthProgressBar} color={mainTheme.FONT_COLOR}/>
+        <Text style={styles.counterP}>{counterDoneChanges} / {counterChangesTotal}</Text>
+        <Progress.Bar progress={counterChangesTotal > 0 && counterChangesTotal > counterDoneChanges ? counterDoneChanges / counterChangesTotal : 0} width={widthProgressBar} color={mainTheme.FONT_COLOR}/>
       </View>
     </View>
   );

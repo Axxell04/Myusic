@@ -1,7 +1,7 @@
 import { useContext, useEffect } from "react";
 import { ListLocalMusicsContext, ListLocalPlsContext, UpdateListLocalMusicsContext, UpdateListLocalPlsContext } from "../providers/ProviderLists";
 import { PlsSelectedContext } from "../providers/ProviderSelections";
-import { RequestStateContext } from "../providers/ProviderModels";
+// import { RequestStateContext } from "../providers/ProviderModels";
 import { RequestModel } from "../models/RequestModel";
 import { WsConnectContext } from "../providers/ProviderConnection";
 
@@ -22,18 +22,18 @@ export function ManagerLists () {
     const {updateListLocalMusics, setUpdateListLocalMusics} = useContext(UpdateListLocalMusicsContext);
     
     //REQUEST
-    const {requestState, setRequestState} = useContext(RequestStateContext);
+    // const {requestState, setRequestState} = useContext(RequestStateContext);
 
     useEffect(() => {
         if (updateListLocalPls) {
-            setRequestState(new RequestModel("getSyncPls"));
+            // setRequestState(new RequestModel("getSyncPls"));
             setUpdateListLocalPls(false);
         }
     }, [updateListLocalPls])
 
     useEffect(() => {
         if (updateListLocalMusics) {
-            setRequestState(new RequestModel("getSyncMusicToPls"));
+            // setRequestState(new RequestModel("getSyncMusicToPls"));
             setUpdateListLocalMusics(false);
         }
     }, [updateListLocalMusics])

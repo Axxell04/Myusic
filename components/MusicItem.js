@@ -1,13 +1,10 @@
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { mainTheme } from "./Palete";
 import Icon from "react-native-vector-icons/AntDesign";
-import { act, memo, useCallback, useContext, useEffect, useState } from "react";
-import { PlayerContext } from "../providers/ProviderProcesses";
+import { memo, useCallback, useContext, useEffect, useState } from "react";
 import {
-  IpServerContext,
-  WsConnectContext,
+  WsConnectContext
 } from "../providers/ProviderConnection";
-import TrackPlayer from "react-native-track-player";
 import {
   ListLocalMusicsContext,
   ListMusicsContext,
@@ -18,7 +15,7 @@ import {
   IdListTrackContext,
   PlsSelectedContext,
 } from "../providers/ProviderSelections";
-import { ListChangesContext } from "../providers/ProviderChanges";
+import { CounterChangesTotalContext, ManagerChangesContext } from "../providers/ProviderChanges";
 import { MusicChangeModel, MusicModel } from "../models/MusicModel";
 
 const MusicItemInfo = memo(({music}) => {
@@ -97,21 +94,13 @@ const MusicItemIconSync = memo(({actualSyncState}) => {
 })
 
 export function MusicItem({ music }) {
-  //##EL ITEM SE ESTÁ VOLVIENDO A RENDERIZAR ANQUE SU CONTENIDO "ESTÁTICO" QUE SE MUESTRA EN PANTALLA COMO NOMBRE, AUTOR Y DURACIÓN CON CAMBIA
-  //** CREAR OTRO COMPONENTE HIJO AL QUE SOLO SE LE PASARÁ LA INFORMACIÓN ESTÁTICA COMO NOMBRE Y DEMÁS, EL CUAL SERÁ QUIEN SE RENDERIZARÁ REALMENTE 
-  //console.log(music)
-  //WS CONNECTED
   const wsConnected = useContext(WsConnectContext);
 
-  //LIST LOCAL ##OPTIMIZAR
   const { listLocalMusics } = useContext(ListLocalMusicsContext);
 
   //SYNC STATE
   const [initSyncState, setInitSyncState] = useState(false);
   const [actualSyncState, setActualSyncState] = useState(initSyncState);
-
-  //LIST MUSIC CHANGES
-  const { listChanges, setListChanges } = useContext(ListChangesContext);
 
   const { plsSelected } = useContext(PlsSelectedContext);
   const { listMusics } = useContext(ListMusicsContext);
@@ -119,16 +108,11 @@ export function MusicItem({ music }) {
   const { setIdListTrack } = useContext(IdListTrackContext);
   const { setTrackSelected } = useContext(TrackSelectedContext);
 
-  
+  //MANAGER CHANGES
+  const managerChanges = useContext(ManagerChangesContext);
 
-  const getIndexOfMusic = async () => {
-    const index = (await TrackPlayer.getQueue()).findIndex((track) => {
-      if (track.artist === music.author && track.title === music.name) {
-        return true;
-      }
-    });
-    return index;
-  };
+  //COUNTER CHANGES
+  const {counterChangesTotal} = useContext(CounterChangesTotalContext);
 
   const changeListTrack = () => {
     if (wsConnected) {
@@ -146,36 +130,24 @@ export function MusicItem({ music }) {
     setIdListTrack(plsSelected);
   };
 
-  //const [indexMusic, setIndexMusic] = useState(getIndexOfMusic());
-
   const changeSyncState = () => {
     if (initSyncState != !actualSyncState) {
       const command = !actualSyncState ? "sync" : "desync";
-      setListChanges([
-        ...listChanges,
-        new MusicChangeModel(
-          new MusicModel(music.id, music.name, music.author, music.duration),
-          command
-        ),
-      ]);
+      managerChanges.addChange(new MusicChangeModel(
+        new MusicModel(music.id, music.name, music.author, music.duration),
+        command
+      ))
     } else {
-      setListChanges(
-        listChanges.filter((musicChange) => {
-          return musicChange.music.id != music.id;
-        })
-      );
+      managerChanges.removeChange(music.id);
     }
     setActualSyncState(!actualSyncState);
   };
 
   useEffect(() => {
-    const itemMusicChange = listChanges.find((musicChange) => {
-      return musicChange.music.id === music.id;
-    })
-    if (!itemMusicChange) {
+    if (!managerChanges.checkChange(music.id)) {
       setActualSyncState(initSyncState);
     }
-  }, [listChanges])
+  }, [counterChangesTotal])
 
   useEffect(() => {
     listLocalMusics.find((musicLocal) => {

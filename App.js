@@ -10,6 +10,7 @@ import {
   StatusBar,
   Alert,
   ToastAndroid,
+  TouchableOpacity
 } from "react-native";
 // import * as FileSystem from "expo-file-system";
 
@@ -36,6 +37,8 @@ import { SectionChanges } from "./components/SectionChanges";
 import { ManagerChanges } from "./class/ManagerChanges";
 import { ManagerLists } from "./class/ManagerLists";
 import { ManagerFiles } from "./class/ManagerFiles";
+import { SectionProcess } from "./components/SectionProcess";
+
 
 export default function App() {
   
@@ -44,7 +47,10 @@ export default function App() {
       <SafeAreaView style={styles.containerMain}>
         <StatusBar hidden={false} backgroundColor={mainTheme.PRIMARY_COLOR} />
         <View style={styles.containerInner}>
-          <SectionConnection />
+          <View style={styles.topBar}>
+            <SectionConnection />
+            <SectionProcess />
+          </View>
           <SectionHomePlaylist />
           <SectionHomeMusics />
           <SectionPlayer />
@@ -86,6 +92,10 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: "scroll",
     gap: 10,
+  },
+  topBar: {
+    flexDirection: "row",
+    gap: 10
   },
   input: {
     height: 40,

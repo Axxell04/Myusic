@@ -163,12 +163,25 @@ dependencies {
         }
     }
 
+    def flipper_version = "0.125.0" // Puedes ajustar esta versión según sea necesario
+
+    // implementation("com.facebook.react:flipper-integration:$flipper_version")
+
     implementation("com.facebook.react:flipper-integration")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://maven.google.com' }
+        maven { url 'https://jitpack.io' }
     }
 }
 

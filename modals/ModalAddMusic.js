@@ -1,4 +1,7 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { useURL } from "expo-linking";
+import * as Clipboard from "expo-clipboard";
+import * as WebBrowser from "expo-web-browser";
 import { BaseModal } from "./BaseModal";
 // import {
 //   ConnectWsContext,
@@ -21,6 +24,8 @@ export function ModalAddMusic() {
   const managerWS = useContext(ManagerWSContext);
   const [urlMusic, setUrlMusic] = useState("");
 
+  const urlLinking = useURL()
+
   const downloadMusic = () => {
     if (wsConnected && !downloadInProcess && urlMusic) {
       managerWS.send("download", urlMusic.trim());
@@ -37,6 +42,32 @@ export function ModalAddMusic() {
     }
   };
 
+  const openWebBrowser = async () => {
+    const initCopy = await Clipboard.getStringAsync()
+  
+    let result = await WebBrowser.openAuthSessionAsync("https://axxell04.github.io/redirect-yt/")
+    
+    if (result.type === WebBrowser.WebBrowserResultType.DISMISS) {
+      console.log("El browser fue cerrado")
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const actualCopy = await Clipboard.getStringAsync({})
+      // console.log("initCopy: "+initCopy);
+      // console.log("actualCopy: "+actualCopy);
+
+      if (actualCopy != initCopy) {
+        console.log("Se ha copiado un nuevo link");
+        ToastAndroid.show("Nuevo link detectado", ToastAndroid.SHORT);
+        setUrlMusic(actualCopy);
+        // setModalAddMusicIsVisible(true);
+      }
+
+    }
+  }
+
+  useEffect(() => {
+    console.log("URL_LINKING: "+urlLinking)
+  }, [urlLinking])
+
   return (
     <BaseModal
       title={"Descargar \nCanción | Playlist"}
@@ -46,6 +77,7 @@ export function ModalAddMusic() {
         setValueTextInput: setUrlMusic,
       }}
       primaryButton={{ title: "Descargar", onPress: downloadMusic }}
+      secondaryButton={{title: "Buscar en YT", onPress: openWebBrowser}}
       isVisible={modalAddMusicIsVisible}
       setIsVisible={setModalAddMusicIsVisible}
     />

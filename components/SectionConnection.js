@@ -17,7 +17,9 @@ export function SectionConnection() {
             borderColor: !wsConnected ? mainTheme.FONT_COLOR2 : "lime", 
             borderRadius: 10,
             justifyContent: "center",
-            alignItems: "center"
+            alignItems: "center",
+            paddingHorizontal: 7,
+            flexGrow: 1
         },
         status: {
             color: mainTheme.FONT_COLOR,
@@ -26,7 +28,7 @@ export function SectionConnection() {
     })
     return (
         <TouchableOpacity style={styles.container} onPress={() => setModalConnectIsVisible(true)}>
-            <Text style={styles.status}>{wsConnected ? `Conectado al servidor: ${ipServer}`: "Sin conexión establecida"}</Text>
+            <Text style={styles.status}>{wsConnected ? `Conectado al servidor`: "Sin conexión establecida"}</Text>
         </TouchableOpacity>
     )
 }

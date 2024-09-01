@@ -5,21 +5,21 @@ import {
   StatusBar,
 } from "react-native";
 
-import { Providers } from "./components/Context";
-import { BottomBar } from "./components/BottomBar";
-import { mainTheme } from "./components/Palete";
-import { ModalAddMusic } from "./modals/ModalAddMusic";
+import { BottomBar } from "./lib/sections/BottomBar";
+import { mainTheme } from "./lib/components/Palete";
+import { ModalAddMusic } from "./lib/modals/ModalAddMusic";
 import {
   ModalCreatePlaylist,
-} from "./modals/ModalCreatePlaylist";
-import { ModalRemovePlaylist } from "./modals/ModalRemovePlaylist";
-import { ModalAddMusicToPls } from "./modals/ModalAddMusicToPls";
-import { ModalRemoveMusicToPls } from "./modals/ModalRemoveMusicToPls";
-import { ModalConnect } from "./modals/ModalConnect";
-import { MusicPlayer } from "./class/MusicPlayer";
-import { ManagerLists } from "./class/ManagerLists";
-import { ModalYT } from "./modals/ModalYT";
-import { ScreenMain } from "./screens/ScreenMain";
+} from "./lib/modals/ModalCreatePlaylist";
+import { ModalRemovePlaylist } from "./lib/modals/ModalRemovePlaylist";
+import { ModalAddMusicToPls } from "./lib/modals/ModalAddMusicToPls";
+import { ModalRemoveMusicToPls } from "./lib/modals/ModalRemoveMusicToPls";
+import { ModalConnect } from "./lib/modals/ModalConnect";
+import { MusicPlayer } from "./lib/class/MusicPlayer";
+import { ManagerLists } from "./lib/class/ManagerLists";
+import { ModalYT } from "./lib/modals/ModalYT";
+import { ScreenMain } from "./lib/screens/ScreenMain";
+import { Providers } from "./lib/providers/Context";
 
 
 export default function App() {

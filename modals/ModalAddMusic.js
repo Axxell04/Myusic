@@ -1,8 +1,9 @@
 import { useContext, useEffect, useState } from "react";
 import { useURL } from "expo-linking";
 import * as Clipboard from "expo-clipboard";
-import * as WebBrowser from "expo-web-browser";
+import { WebView } from "react-native-webview";
 import { BaseModal } from "./BaseModal";
+
 // import {
 //   ConnectWsContext,
 //   DownloadingContext,
@@ -10,13 +11,22 @@ import { BaseModal } from "./BaseModal";
 //   ModalAddMusicContext,
 // } from "../components/Context";
 import { ToastAndroid } from "react-native";
-import { ModalAddMusicContext } from "../providers/ProviderModals";
+import {
+  ModalAddMusicContext,
+  ModalYTContext,
+} from "../providers/ProviderModals";
 import { DownloadInProcessContext } from "../providers/ProviderProcesses";
-import { ManagerWSContext, WsConnectContext } from "../providers/ProviderConnection";
+import {
+  ManagerWSContext,
+  WsConnectContext,
+} from "../providers/ProviderConnection";
+import { YTURLIsValidContext } from "../providers/ProviderYT";
 
 export function ModalAddMusic() {
   const { modalAddMusicIsVisible, setModalAddMusicIsVisible } =
     useContext(ModalAddMusicContext);
+  const { modalYTIsVisible, setModalYTIsVisible } = useContext(ModalYTContext);
+  const {setYTURLIsValid} = useContext(YTURLIsValidContext);
   const { downloadInProcess, setDownloadInProcess } = useContext(
     DownloadInProcessContext
   );
@@ -24,7 +34,7 @@ export function ModalAddMusic() {
   const managerWS = useContext(ManagerWSContext);
   const [urlMusic, setUrlMusic] = useState("");
 
-  const urlLinking = useURL()
+  const urlLinking = useURL();
 
   const downloadMusic = () => {
     if (wsConnected && !downloadInProcess && urlMusic) {
@@ -42,44 +52,47 @@ export function ModalAddMusic() {
     }
   };
 
-  const openWebBrowser = async () => {
-    const initCopy = await Clipboard.getStringAsync()
-  
-    let result = await WebBrowser.openAuthSessionAsync("https://axxell04.github.io/redirect-yt/")
-    
-    if (result.type === WebBrowser.WebBrowserResultType.DISMISS) {
-      console.log("El browser fue cerrado")
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const actualCopy = await Clipboard.getStringAsync({})
-      // console.log("initCopy: "+initCopy);
-      // console.log("actualCopy: "+actualCopy);
-
-      if (actualCopy != initCopy) {
-        console.log("Se ha copiado un nuevo link");
-        ToastAndroid.show("Nuevo link detectado", ToastAndroid.SHORT);
-        setUrlMusic(actualCopy);
-        // setModalAddMusicIsVisible(true);
-      }
-
-    }
-  }
+  const openModalYT = async () => {
+    setModalYTIsVisible(true);
+    setModalAddMusicIsVisible(false);
+  };
 
   useEffect(() => {
-    console.log("URL_LINKING: "+urlLinking)
-  }, [urlLinking])
+    const listenerCopy = Clipboard.addClipboardListener(({ contentTypes }) => {
+      console.log(contentTypes);
+      if (contentTypes.includes(Clipboard.ContentType.PLAIN_TEXT)) {
+        Clipboard.getStringAsync().then((content) => {
+          console.log("Copiado: " + content);
+          if (modalYTIsVisible || content.includes("youtube") || content.includes("youtu.be")) {
+            setModalYTIsVisible(false);
+            setModalAddMusicIsVisible(true);
+            setUrlMusic(content);
+          }
+        });
+      }
+    });
+
+    console.log(listenerCopy);
+
+    return () => {
+      Clipboard.removeClipboardListener(listenerCopy);
+    };
+  }, []);
 
   return (
-    <BaseModal
-      title={"Descargar \nCanción | Playlist"}
-      textInput={{
-        placeHolder: "Link de Youtube",
-        valueTextInput: urlMusic,
-        setValueTextInput: setUrlMusic,
-      }}
-      primaryButton={{ title: "Descargar", onPress: downloadMusic }}
-      secondaryButton={{title: "Buscar en YT", onPress: openWebBrowser}}
-      isVisible={modalAddMusicIsVisible}
-      setIsVisible={setModalAddMusicIsVisible}
-    />
+    <>
+      <BaseModal
+        title={"Descargar \nCanción | Playlist"}
+        textInput={{
+          placeHolder: "Link de Youtube",
+          valueTextInput: urlMusic,
+          setValueTextInput: setUrlMusic,
+        }}
+        primaryButton={{ title: "Descargar", onPress: downloadMusic }}
+        secondaryButton={{ title: "Buscar en YT", onPress: openModalYT }}
+        isVisible={modalAddMusicIsVisible}
+        setIsVisible={setModalAddMusicIsVisible}
+      />
+    </>
   );
 }

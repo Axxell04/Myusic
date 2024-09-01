@@ -4,6 +4,7 @@ import { ManagerWSContext } from "./ProviderConnection";
 export const ModalCreatePlsContext = createContext(null);
 export const ModalRemovePlsContext = createContext(null);
 export const ModalAddMusicContext = createContext(null);
+export const ModalYTContext = createContext(null);
 export const ModalAddMusicToPlsContext = createContext(null);
 export const ModalRemoveMusicToPlsContext = createContext(null);
 export const ModalConnectContext = createContext(null);
@@ -12,6 +13,7 @@ export function ProviderModals({ children }) {
   const [modalCreatePlsIsVisible, setModalCreatePlsIsVisible] = useState(false);
   const [modalRemovePlsIsVisible, setModalRemovePlsIsVisible] = useState(false);
   const [modalAddMusicIsVisible, setModalAddMusicIsVisible] = useState(false);
+  const [modalYTIsVisible, setModalYTIsVisible] = useState(false);
   const [modalAddMusicToPlsIsVisible, setModalAddMusicToPlsIsVisible] =
     useState(false);
   const [modalRemoveMusicToPlsIsVisible, setModalRemoveMusicToPlsIsVisible] =
@@ -31,25 +33,29 @@ export function ProviderModals({ children }) {
         <ModalAddMusicContext.Provider
           value={{ modalAddMusicIsVisible, setModalAddMusicIsVisible }}
         >
-          <ModalAddMusicToPlsContext.Provider
-            value={{
-              modalAddMusicToPlsIsVisible,
-              setModalAddMusicToPlsIsVisible,
-            }}
+          <ModalYTContext.Provider
+            value={{ modalYTIsVisible, setModalYTIsVisible }}
           >
-            <ModalRemoveMusicToPlsContext.Provider
+            <ModalAddMusicToPlsContext.Provider
               value={{
-                modalRemoveMusicToPlsIsVisible,
-                setModalRemoveMusicToPlsIsVisible,
+                modalAddMusicToPlsIsVisible,
+                setModalAddMusicToPlsIsVisible,
               }}
             >
-              <ModalConnectContext.Provider
-                value={{ modalConnectIsVisible, setModalConnectIsVisible }}
+              <ModalRemoveMusicToPlsContext.Provider
+                value={{
+                  modalRemoveMusicToPlsIsVisible,
+                  setModalRemoveMusicToPlsIsVisible,
+                }}
               >
-                {children}
-              </ModalConnectContext.Provider>
-            </ModalRemoveMusicToPlsContext.Provider>
-          </ModalAddMusicToPlsContext.Provider>
+                <ModalConnectContext.Provider
+                  value={{ modalConnectIsVisible, setModalConnectIsVisible }}
+                >
+                  {children}
+                </ModalConnectContext.Provider>
+              </ModalRemoveMusicToPlsContext.Provider>
+            </ModalAddMusicToPlsContext.Provider>
+          </ModalYTContext.Provider>
         </ModalAddMusicContext.Provider>
       </ModalRemovePlsContext.Provider>
     </ModalCreatePlsContext.Provider>

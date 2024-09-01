@@ -1,10 +1,16 @@
 import { ToastAndroid } from "react-native";
 
 export default class WS {
+  
   constructor(setWsConnected) {
     this.ipServer = null;
     this.setWsConnected = setWsConnected;
     this.ws = null;
+
+    this.pingInterval = null;
+    this.checkPingPongStatus = null;
+    this.counterPings = 0;
+    this.pingPongActive = false;
 
     this.listMusics = [];
     this.setterListMusics = null;
@@ -53,13 +59,31 @@ export default class WS {
     if (this.ipServer && this.setWsConnected) {
       try {
         this.ws = new WebSocket(`ws://${this.ipServer}:8000/`);
+
         this.ws.onopen = (e) => {
           this.setterModalConnectIsVisible(false);
-          ToastAndroid.show("Conexión establecida", ToastAndroid.SHORT);
+          //ToastAndroid.show("Conexión establecida", ToastAndroid.SHORT);
           console.log("Conexión establecida");
           console.log(this.ws);
           this.setWsConnected(true);
           this.initRequest();
+
+          this.pingInterval = setInterval(() => {
+            if (this.ws.readyState === WebSocket.OPEN) {
+              console.log("Send ping");
+              this.counterPings += 1;
+              this.pingPongActive = false;
+              this.ws.send(JSON.stringify({type: 'ping'}))
+            }
+          }, 5000)
+          this.checkPingPongStatus = setInterval(() => {
+            if (!this.pingPongActive && this.counterPings >= 2) {
+              this.disconnect();
+              setTimeout(() => {
+                this.connect();
+              }, 500)
+            }
+          }, 10000);
         };
 
         this.ws.onmessage = (event) => {
@@ -72,6 +96,13 @@ export default class WS {
           console.log("Error ocurrido: " + e.type);
           console.log(this.ws);
           this.setWsConnected(false);
+          this.setterDownloadInProcess(false);
+          if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+          }
+          if (this.checkPingPongStatus) {
+            clearInterval(this.checkPingPongStatus);
+          }
         };
 
         this.ws.onclose = (e) => {
@@ -79,6 +110,13 @@ export default class WS {
           console.log("Conexión cerrada: " + e.reason);
           console.log(this.ws);
           this.setWsConnected(false);
+          this.setterDownloadInProcess(false);
+          if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+          }
+          if (this.checkPingPongStatus) {
+            clearInterval(this.checkPingPongStatus);
+          }
         };
       } catch (error) {
         ToastAndroid.show(error, ToastAndroid.SHORT);
@@ -93,6 +131,7 @@ export default class WS {
       this.setterModalConnectIsVisible(false);
       this.setterListPls([]);
       this.setterListMusics([]);
+      this.setterDownloadInProcess(false);
     }
   }
 
@@ -101,7 +140,10 @@ export default class WS {
     const message = data.message;
     const response = data.response;
     console.log(`${command_received} || ${message}`);
-    if (command_received === "get_musics" && message === "Success") {
+    if (!command_received && !message) {
+      this.counterPings = 0;
+      this.pingPongActive = true;
+    } else if (command_received === "get_musics" && message === "Success") {
       if (this.setterState) {
         this.setterState(response);
         this.setterState = null;

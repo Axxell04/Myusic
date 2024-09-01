@@ -7,6 +7,7 @@ import { ProviderSelections } from "../providers/ProviderSelections";
 import { ProviderChanges } from "../providers/ProviderChanges";
 import { ProviderFiles } from "../providers/ProviderFiles";
 import { ProviderModels } from "../providers/ProviderModels";
+import { ProviderYT } from "../providers/ProviderYT";
 
 export function Providers({ children }) {
   return (
@@ -14,15 +15,17 @@ export function Providers({ children }) {
       <ProviderConnection>
         <ProviderProcesses>
           <ProviderModals>
-            <ProviderLists>
-              <ProviderFiles>
-                <ProviderModels>
-                  <ProviderSelections>
-                    <ProviderChanges>{children}</ProviderChanges>
-                  </ProviderSelections>
-                </ProviderModels>
-              </ProviderFiles>
-            </ProviderLists>
+            <ProviderYT>
+              <ProviderLists>
+                <ProviderFiles>
+                  <ProviderModels>
+                    <ProviderSelections>
+                      <ProviderChanges>{children}</ProviderChanges>
+                    </ProviderSelections>
+                  </ProviderModels>
+                </ProviderFiles>
+              </ProviderLists>
+            </ProviderYT>
           </ProviderModals>
         </ProviderProcesses>
       </ProviderConnection>

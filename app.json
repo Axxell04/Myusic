@@ -2,7 +2,7 @@
   "expo": {
     "name": "Myusic",
     "slug": "Myusic",
-    "version": "1.0.0",
+    "version": "1.2.2",
     "sdkVersion": "50.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
